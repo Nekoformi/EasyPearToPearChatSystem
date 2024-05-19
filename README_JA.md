@@ -1,7 +1,6 @@
-<div style='display: flex; justify-content: center; align-items: center;'>
-    <img src='./Source/Assets/Icon.png' />
-    <h1>Easy Pear to Pear Chat System (E=CS)</h1>
-</div>
+# Easy Pear to Pear Chat System (E=CS)
+
+![](./Others/Screenshot.png)
 
 ## 概要
 
