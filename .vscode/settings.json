@@ -1,0 +1,7 @@
+{
+    "java.format.settings.url": ".vscode/java-formatter.xml",
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "Library/flatlaf-1.6.1.jar"
+    ],
+}
