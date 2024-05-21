@@ -65,7 +65,7 @@ public class Interface extends JFrame {
 
         panel.add(member, gridBagConstraints);
 
-        setTitle("Easy Pear to Pear Chat System");
+        setTitle("Easy Pear to Pear Chat System " + Main.VERSION);
 
         setSize(frameW, frameH);
         setLocation(frameX, frameY);
