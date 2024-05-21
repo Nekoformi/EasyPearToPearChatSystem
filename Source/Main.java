@@ -21,6 +21,17 @@ public class Main {
         String joinAddressPort = null;
         String listeningPort = null;
 
+        boolean useSSL = false;
+
+        String n_cfp = null; // Custom node certificate file path
+        String n_cpp = null; // Custom node certificate pass phrase
+        String a_kfp = null; // Custom auth key store file path
+        String a_kpp = null; // Custom auth key store pass phrase
+        String c_cfp = null; // Custom server certificate file path
+        String c_cpp = null; // Custom server certificate pass phrase
+        String s_cfp = null; // Custom client certificate file path
+        String s_cpp = null; // Custom client certificate pass phrase
+
         ArgumentItem[] argument = new Argument(argv).get();
 
         if (argument != null) {
@@ -82,6 +93,50 @@ public class Main {
                     }
 
                     break;
+                case "ssl":
+                    useSSL = true;
+
+                    break;
+                case "pkc-file":
+                    if (Argument.check(item, Util.TYPE_STRING))
+                        n_cfp = item.content;
+
+                    break;
+                case "pkc-pass":
+                    if (Argument.check(item, Util.TYPE_STRING))
+                        n_cpp = item.content;
+
+                    break;
+                case "jks-file":
+                    if (Argument.check(item, Util.TYPE_STRING))
+                        a_kfp = item.content;
+
+                    break;
+                case "jks-pass":
+                    if (Argument.check(item, Util.TYPE_STRING))
+                        a_kpp = item.content;
+
+                    break;
+                case "pkc-server-file":
+                    if (Argument.check(item, Util.TYPE_STRING))
+                        s_cfp = item.content;
+
+                    break;
+                case "pkc-server-pass":
+                    if (Argument.check(item, Util.TYPE_STRING))
+                        s_cpp = item.content;
+
+                    break;
+                case "pkc-client-file":
+                    if (Argument.check(item, Util.TYPE_STRING))
+                        c_cfp = item.content;
+
+                    break;
+                case "pkc-client-pass":
+                    if (Argument.check(item, Util.TYPE_STRING))
+                        c_cpp = item.content;
+
+                    break;
                 case "debug":
                     Console.DEBUG_LOG = true;
 
@@ -110,6 +165,20 @@ public class Main {
         title.append("\n- Leave the network with /leave");
 
         client.systemConsole.pushMainLine(title.toString());
+
+        if (useSSL) {
+            if (n_cfp != null || s_cfp == null || c_cfp == null) {
+                s_cfp = n_cfp;
+                c_cfp = n_cfp;
+            }
+
+            if (n_cpp != null || s_cpp == null || c_cpp == null) {
+                s_cpp = n_cpp;
+                c_cpp = n_cpp;
+            }
+
+            client.initializeSSL(s_cfp, s_cpp, c_cfp, c_cpp, a_kfp, a_kpp);
+        }
 
         if (joinAddressPort == null && listeningPort != null)
             client.executeCommand("/create " + listeningPort);

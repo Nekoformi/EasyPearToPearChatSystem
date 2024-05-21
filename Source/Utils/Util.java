@@ -11,6 +11,7 @@ import java.time.format.*;
 import java.util.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import javax.net.ssl.*;
 
 public class Util {
     public static final String MAGIC_WORD = "Every way holds mysteries to be explored! ... by Sara Kotova";
@@ -394,6 +395,44 @@ public class Util {
 
             return null;
         }
+    }
+
+    public static KeyManagerFactory setKeyManagerFactory(String filePath, String passPhrase) throws Exception {
+        if (filePath == null)
+            return null; // Need certificate file path.
+
+        if (passPhrase == null)
+            passPhrase = "";
+
+        FileInputStream p12 = new FileInputStream(filePath);
+        KeyStore ks = KeyStore.getInstance("pkcs12");
+
+        ks.load(p12, passPhrase.toCharArray());
+
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+
+        keyManagerFactory.init(ks, passPhrase.toCharArray());
+
+        return keyManagerFactory;
+    }
+
+    public static TrustManagerFactory setTrustManagerFactory(String filePath, String passPhrase) throws Exception {
+        if (filePath == null)
+            return null; // Need key store file path.
+
+        if (passPhrase == null)
+            passPhrase = "";
+
+        FileInputStream jks = new FileInputStream(filePath);
+        KeyStore ks = KeyStore.getInstance("JKS");
+
+        ks.load(jks, passPhrase.toCharArray());
+
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+
+        trustManagerFactory.init(ks);
+
+        return trustManagerFactory;
     }
 
     public static String encryptStringWithAesCommonKey(String data, SecretKey commonKey) {

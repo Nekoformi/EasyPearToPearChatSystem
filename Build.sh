@@ -33,7 +33,7 @@ rm -rf ./Cache/*
 
 javac -cp "$libraryList": ./Source/Main.java
 mkdir ./Build/Source
-rsync -a --include='*/' --include='*.class' --include='*.png' --exclude='*' ./Source/ ./Build/Source/
+rsync -a --include='*/' --exclude='*.java' --exclude='*.xcf' --include='*' ./Source/ ./Build/Source/
 find ./Source -name '*.class' | xargs rm
 find ./Source -type d -empty -delete
 
