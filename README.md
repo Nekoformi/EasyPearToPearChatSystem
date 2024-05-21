@@ -24,20 +24,20 @@ $ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -ssl -de
 
 #### General options
 
-| Option | Type | Effect |
-| --- | --- | --- |
-| `x` `left` | `<INTEGER>` | Set the X position of the window. |
-| `y` `top` | `<INTEGER>` | Set the Y position of the window. |
-| `w` `width` | `<UNSIGNED INTEGER>` | Set the width of the window. |
-| `h` `height` | `<UNSIGNED INTEGER>` | Set the height of the window. |
-| `c` `center` | `<VOID>` | Center the window. |
-| `m` `maximize` | `<VOID>` | Maximize the window. |
-| `n` `name` | `<STRING>` | Set the username. It can also be changed within the application. |
-| `t` `timeout` | `<UNSIGNED INTEGER>` | Set the timeout (in milliseconds). |
-| `create` | `<LISTENING PORT>` | Create a network at startup. |
-| `join` | `<ADDRESS>:<PORT>,<LISTENING PORT>` | Join the network at startup. |
-| `ssl` | `<VOID>` | Use SSL (Secure Socket Layer). However, note that the standard state has nonsense on users who know the protocol. |
-| `debug` | `<VOID>` | Outputs log to the console. |
+| Option | Type | Default | Effect |
+| --- | --- | --- | --- |
+| `x` `left` | `<INTEGER>` | 0 | Set the X position of the window. |
+| `y` `top` | `<INTEGER>` | 0 | Set the Y position of the window. |
+| `w` `width` | `<UNSIGNED INTEGER>` | 640 | Set the width of the window. |
+| `h` `height` | `<UNSIGNED INTEGER>` | 480 | Set the height of the window. |
+| `c` `center` | `<VOID>` | false | Center the window. |
+| `m` `maximize` | `<VOID>` | false | Maximize the window. |
+| `n` `name` | `<STRING>` | "Anonymous" | Set the username. It can also be changed within the application. |
+| `t` `timeout` | `<UNSIGNED INTEGER>` | 10000 | Set the timeout (in milliseconds). |
+| `create` | `<LISTENING PORT>` | - | Create a network at startup. |
+| `join` | `<ADDRESS>:<PORT>,<LISTENING PORT>` | - | Join the network at startup. |
+| `ssl` | `<VOID>` | false | Use SSL (Secure Socket Layer). However, note that the standard state has nonsense on users who know the protocol. |
+| `debug` | `<VOID>` | false | Outputs log to the console. |
 
 #### Options enabled in SSL mode
 
@@ -95,6 +95,11 @@ keytool -import \
     -storepass "<PASS PHRASE>" \
     -keystore "<EXPORT FILE>.jks"
 ```
+
+## Used technologies
+
+- [Java Development Kit 22](https://www.oracle.com/java/technologies/downloads/)
+- [OpenSSL](https://www.openssl.org/)
 
 ## Used libraries
 
