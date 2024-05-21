@@ -19,8 +19,10 @@ $ java -jar E=CS.jar
 オプションを追加することで、アプリケーションの起動をカスタマイズできます。例えば、以下のように：
 
 ```sh:Bash
-$ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -debug
+$ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -ssl -debug
 ```
+
+#### 一般的なオプション
 
 | オプション | 型 | 説明 |
 | --- | --- | --- |
@@ -33,7 +35,21 @@ $ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -debug
 | `n` `name` | `<文字列>` | ユーザー名を設定します。アプリケーション内でも変更が可能です。 |
 | `create` | `<ポート番号>` | 起動後にネットワークを作成します。 |
 | `join` | `<IPアドレス>:<ポート番号>,<ポート番号>` | 起動後にネットワークに参加します。 |
+| `ssl` | `<なし>` | SSL（セキュア・ソケット・レイヤー）を使用します。ただし、標準状態ではプロトコルを知るユーザーに対して意味がないことに注意してください。 |
 | `debug` | `<なし>` | コンソールにログを出力します。 |
+
+#### SSLモードで有効になるオプション
+
+| オプション | 型 | 説明 |
+| --- | --- | --- |
+| `pkc-file` | `<P12ファイル>` | PKCS（公開鍵暗号標準）ファイルを指定します。クライアント及びサーバーの証明書として指定されますが、これはノード間で通信を行うためです。 |
+| `pkc-pass` | `<文字列>` | `pkc-file`の処理にパスフレーズが必要な場合に指定します。 |
+| `jks-file` | `<JKSファイル>` | JKS（Java鍵ストア）ファイルを指定します。これはクライアントを証明するCA局の証明書（CRTファイル）を用いて[keytool](https://docs.oracle.com/javase/10/tools/keytool.htm)から作成できます。 |
+| `jks-pass` | `<文字列>` | `jks-file`の処理にパスフレーズが必要な場合に指定します。 |
+| `pkc-server-file` | `<P12ファイル>` | サーバーのPKCSファイルを指定します。 |
+| `pkc-server-pass` | `<文字列>` | `pkc-server-file`の処理にパスフレーズが必要な場合に指定します。 |
+| `pkc-client-file` | `<P12ファイル>` | クライアントのPKCSファイルを指定します。 |
+| `pkc-client-pass` | `<文字列>` | `pkc-client-file`の処理にパスフレーズが必要な場合に指定します。 |
 
 ### 操作
 
@@ -56,6 +72,28 @@ Hello world!
 | `cls` `clear` | `<なし>` | チャット履歴を削除します。 |
 | `connect` | `<ユーザーID>` | ノードに接続します。 |
 | `disconnect` | `<ユーザーID>` | ノードを切断します。 |
+
+## おまけ
+
+### PKCSの作り方
+
+```sh:Bash
+openssl pkcs12 -export \
+    -in "<YOUR CERTIFICATE FILE>.crt" \
+    -inkey "<YOUR PRIVATE KEY>.key" \
+    -certfile "<CA CERTIFICATE FILE>.crt" \
+    -passout "<PASS PHRASE>" \
+    -out "<EXPORT FILE>.p12"
+```
+
+### JKSの作り方
+
+```sh:Bash
+keytool -import \
+    -file "<CA CERTIFICATE FILE>.crt" \
+    -storepass "<PASS PHRASE>" \
+    -keystore "<EXPORT FILE>.jks"
+```
 
 ## 使用ライブラリー
 

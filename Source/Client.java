@@ -17,6 +17,7 @@ import Source.Utils.Util;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import javax.net.ssl.*;
 
 public class Client {
     // Note: Clientは実行されるプログラムに対応する。
@@ -30,6 +31,19 @@ public class Client {
     public TaskStack taskStack = new TaskStack(this);
 
     public NodeListener nodeListener;
+
+    KeyManagerFactory serverKeyManagerFactory;
+    KeyManagerFactory clientKeyManagerFactory;
+    TrustManagerFactory authTrustManagerFactory;
+
+    public static final String DEFAULT_SERVER_CERTIFICATE_FILE_PATH = "./Source/Assets/DefaultServerCertificate.p12";
+    public static final String DEFAULT_SERVER_CERTIFICATE_PASS_PHRASE = "Hello server!";
+    public static final String DEFAULT_CLIENT_CERTIFICATE_FILE_PATH = "./Source/Assets/DefaultClientCertificate.p12";
+    public static final String DEFAULT_CLIENT_CERTIFICATE_PASS_PHRASE = "Hello client!";
+    public static final String DEFAULT_AUTH_KEY_STORE_FILE_PATH = "./Source/Assets/DefaultRootKeyStore.jks";
+    public static final String DEFAULT_AUTH_KEY_STORE_PASS_PHRASE = "Hello root!";
+
+    public boolean useSSL = false;
 
     public static final String TIMEOUT = "10000";
 
@@ -46,9 +60,15 @@ public class Client {
             return;
         }
 
-        systemConsole.pushMainLine("Create a network:\n" + showInetAddresses(1, listeningPort));
+        if (!useSSL) {
+            systemConsole.pushMainLine("Create a network:\n" + showInetAddresses(1, listeningPort));
 
-        nodeListener = new NodeListener(listeningPort);
+            nodeListener = new NodeListener(listeningPort);
+        } else {
+            systemConsole.pushMainLine("Create a secure network:\n" + showInetAddresses(1, listeningPort));
+
+            nodeListener = new SecureNodeListener(listeningPort);
+        }
     }
 
     public void joinNetwork(String address, int port, int listeningPort) {
@@ -62,11 +82,14 @@ public class Client {
             systemConsole.pushMainLine("You have joined the network.");
             chatConsole.pushSubLine(getCurrentTimeDisplay() + "You have joined the network.");
 
-            nodeListener = new NodeListener(listeningPort);
+            nodeListener = useSSL ? new SecureNodeListener(listeningPort) : new NodeListener(listeningPort);
         }
     }
 
     public boolean joinNetwork(String address, int port) {
+        if (useSSL)
+            return joinSecureNetwork(address, port);
+
         try {
             Socket socket = new Socket();
 
@@ -77,6 +100,36 @@ public class Client {
             systemConsole.pushMainLine("Join the network: " + Util.getSocketInfoString(socket));
 
             connectNode(socket, false);
+
+            return true;
+        } catch (IOException e) {
+            systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to join the network."));
+        } catch (Exception e) {
+            systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Something is wrong."));
+        }
+
+        return false;
+    }
+
+    public boolean joinSecureNetwork(String address, int port) {
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+
+            sslContext.init(clientKeyManagerFactory.getKeyManagers(), authTrustManagerFactory.getTrustManagers(), null);
+
+            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            SSLSocket sslSocket = (SSLSocket)sslSocketFactory.createSocket();
+
+            systemConsole.pushSubLine("Try to join the network...");
+
+            sslSocket.connect(new InetSocketAddress(address, port), 10000);
+
+            systemConsole.pushMainLine("Join the secure network: " + Util.getSocketInfoString(sslSocket));
+
+            sslSocket.startHandshake();
+
+            connectNode(sslSocket, false);
 
             return true;
         } catch (IOException e) {
@@ -452,8 +505,81 @@ public class Client {
         }
     }
 
+    public void initializeSSL() {
+        useSSL = true;
+
+        setServerCertificate(null, null);
+        setClientCertificate(null, null);
+        setAuthKeyStore(null, null);
+    }
+
+    public void initializeSSL(String s_cfp, String s_cpp, String c_cfp, String c_cpp, String a_kfp, String a_kpp) {
+        useSSL = true;
+
+        setServerCertificate(s_cfp, s_cpp);
+        setClientCertificate(c_cfp, c_cpp);
+        setAuthKeyStore(a_kfp, a_kpp);
+    }
+
+    public void setServerCertificate(String filePath, String passPhrase) {
+        if (filePath == null && passPhrase == null) {
+            filePath = DEFAULT_SERVER_CERTIFICATE_FILE_PATH;
+            passPhrase = DEFAULT_SERVER_CERTIFICATE_PASS_PHRASE;
+        }
+
+        if (filePath == null) {
+            systemConsole.pushErrorLine("No server certificate specified.");
+
+            return;
+        }
+
+        try {
+            serverKeyManagerFactory = Util.setKeyManagerFactory(filePath, passPhrase);
+        } catch (Exception e) {
+            systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set server certificate."));
+        }
+    }
+
+    public void setClientCertificate(String filePath, String passPhrase) {
+        if (filePath == null && passPhrase == null) {
+            filePath = DEFAULT_CLIENT_CERTIFICATE_FILE_PATH;
+            passPhrase = DEFAULT_CLIENT_CERTIFICATE_PASS_PHRASE;
+        }
+
+        if (filePath == null) {
+            systemConsole.pushErrorLine("No client certificate specified.");
+
+            return;
+        }
+
+        try {
+            clientKeyManagerFactory = Util.setKeyManagerFactory(filePath, passPhrase);
+        } catch (Exception e) {
+            systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set client certificate."));
+        }
+    }
+
+    public void setAuthKeyStore(String filePath, String passPhrase) {
+        if (filePath == null && passPhrase == null) {
+            filePath = DEFAULT_AUTH_KEY_STORE_FILE_PATH;
+            passPhrase = DEFAULT_AUTH_KEY_STORE_PASS_PHRASE;
+        }
+
+        if (filePath == null) {
+            systemConsole.pushErrorLine("No auth key store specified.");
+
+            return;
+        }
+
+        try {
+            authTrustManagerFactory = Util.setTrustManagerFactory(filePath, passPhrase);
+        } catch (Exception e) {
+            systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set auth key store."));
+        }
+    }
+
     public class NodeListener extends Thread {
-        private volatile boolean done = false;
+        protected volatile boolean done = false;
 
         String address;
         int port = -1;
@@ -520,6 +646,77 @@ public class Client {
                 Socket socket = new Socket("127.0.0.1", port);
 
                 socket.close();
+            } catch (Exception e) {
+                systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Something is wrong."));
+            }
+        }
+    }
+
+    public class SecureNodeListener extends NodeListener {
+        public SecureNodeListener(int port) {
+            super(port);
+        }
+
+        public void run() {
+            SSLServerSocket sslServerSocket = null;
+
+            try {
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+
+                sslContext.init(serverKeyManagerFactory.getKeyManagers(), authTrustManagerFactory.getTrustManagers(), null);
+
+                SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
+
+                sslServerSocket = (SSLServerSocket)sslServerSocketFactory.createServerSocket(port);
+
+                sslServerSocket.setNeedClientAuth(true);
+
+                address = getGoodInetAddress(sslServerSocket.getInetAddress().getHostAddress());
+
+                systemConsole.pushMainLine("Listening: " + address + ":" + Integer.toString(port));
+
+                while (!done) {
+                    systemConsole.pushSubLine("Waiting for new node connection...");
+
+                    SSLSocket sslSocket = (SSLSocket)sslServerSocket.accept();
+
+                    if (!done)
+                        connectNode(sslSocket, true);
+                }
+            } catch (IOException e) {
+                systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to listening to new node."));
+            } catch (Exception e) {
+                systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Something is wrong."));
+            } finally {
+                if (sslServerSocket != null) {
+                    systemConsole.pushSubLine("Finish waiting for new node connection...");
+
+                    try {
+                        sslServerSocket.close();
+                    } catch (Exception e) {
+                        systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Something is wrong."));
+                    }
+                }
+
+                nodeListener = null;
+            }
+        }
+
+        public synchronized void done() {
+            systemConsole.pushSubLine("Finish listening to new node.");
+
+            done = true;
+
+            try {
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+
+                sslContext.init(clientKeyManagerFactory.getKeyManagers(), authTrustManagerFactory.getTrustManagers(), null);
+
+                SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+                SSLSocket sslSocket = (SSLSocket)sslSocketFactory.createSocket("127.0.0.1", port);
+
+                sslSocket.close();
             } catch (Exception e) {
                 systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Something is wrong."));
             }

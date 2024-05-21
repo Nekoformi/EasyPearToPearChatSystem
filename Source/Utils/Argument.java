@@ -16,7 +16,7 @@ public class Argument {
         }
 
         public ArgumentItem get() {
-            if (name != null && content != null) {
+            if (name != null) {
                 return this;
             } else {
                 return null;
@@ -29,7 +29,7 @@ public class Argument {
 
                 return set(buf[0].substring(1), buf[1]);
             } else if (item.matches("-[^=]+=?")) {
-                return set(item.substring(1), "");
+                return set(item.substring(1), null);
             } else {
                 System.err.println("The argument \"" + item + "\" is not a correct statement.");
 

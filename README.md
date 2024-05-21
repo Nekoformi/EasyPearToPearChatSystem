@@ -19,8 +19,10 @@ $ java -jar E=CS.jar
 You can customize the launch of the application by adding options to the command line. For example, like this:
 
 ```sh:Bash
-$ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -debug
+$ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -ssl -debug
 ```
+
+#### General options
 
 | Option | Type | Effect |
 | --- | --- | --- |
@@ -33,7 +35,21 @@ $ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -debug
 | `n` `name` | `<STRING>` | Set the username. It can also be changed within the application. |
 | `create` | `<LISTENING PORT>` | Create a network at startup. |
 | `join` | `<ADDRESS>:<PORT>,<LISTENING PORT>` | Join the network at startup. |
+| `ssl` | `<VOID>` | Use SSL (Secure Socket Layer). However, note that the standard state has nonsense on users who know the protocol. |
 | `debug` | `<VOID>` | Outputs log to the console. |
+
+#### Options enabled in SSL mode
+
+| Option | Type | Effect |
+| --- | --- | --- |
+| `pkc-file` | `<P12 FILE>` | Specifies the PKCS (Public Key Cryptography Standard) file. This is specified as the certificate for both client and server, as it is used for communication between nodes. |
+| `pkc-pass` | `<STRING>` | Specifies the passphrase for processing the `pkc-file` if required. |
+| `jks-file` | `<JKS FILE>` | Specifies the JKS (Java Key Store) file. This can be created using [keytool](https://docs.oracle.com/javase/10/tools/keytool.htm) with the certificate (CRT file) of the CA that authenticates the client. |
+| `jks-pass` | `<STRING>` | Specifies the passphrase for processing the `jks-file` if required. |
+| `pkc-server-file` | `<P12 FILE>` | Specifies the PKCS file for the server. |
+| `pkc-server-pass` | `<STRING>` | Specifies the passphrase for processing the `pkc-server-file` if required. |
+| `pkc-client-file` | `<P12 FILE>` | Specifies the PKCS file for the client. |
+| `pkc-client-pass` | `<STRING>` | Specifies the passphrase for processing the `pkc-client-file` if required. |
 
 ### Operations
 
@@ -56,6 +72,28 @@ Hello world!
 | `cls` `clear` | `<VOID>` | Clear chat history. |
 | `connect` | `<USER ID>` | Connect the node. |
 | `disconnect` | `<USER ID>` | Disconnect the node. |
+
+## Bonus
+
+### How to create PKCS
+
+```sh:Bash
+openssl pkcs12 -export \
+    -in "<YOUR CERTIFICATE FILE>.crt" \
+    -inkey "<YOUR PRIVATE KEY>.key" \
+    -certfile "<CA CERTIFICATE FILE>.crt" \
+    -passout "<PASS PHRASE>" \
+    -out "<EXPORT FILE>.p12"
+```
+
+### How to create JKS
+
+```sh:Bash
+keytool -import \
+    -file "<CA CERTIFICATE FILE>.crt" \
+    -storepass "<PASS PHRASE>" \
+    -keystore "<EXPORT FILE>.jks"
+```
 
 ## Used libraries
 
