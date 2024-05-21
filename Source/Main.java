@@ -79,6 +79,12 @@ public class Main {
                         name = item.content;
 
                     break;
+                case "t":
+                case "timeout":
+                    if (Argument.check(item, Util.TYPE_UNSIGNED_INTEGER))
+                        Client.TIMEOUT = item.content;
+
+                    break;
                 case "create":
                     if (Argument.check(item, Util.TYPE_IP_PORT))
                         listeningPort = item.content;

@@ -33,6 +33,7 @@ $ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -ssl -de
 | `c` `center` | `<VOID>` | Center the window. |
 | `m` `maximize` | `<VOID>` | Maximize the window. |
 | `n` `name` | `<STRING>` | Set the username. It can also be changed within the application. |
+| `t` `timeout` | `<UNSIGNED INTEGER>` | Set the timeout (in milliseconds). |
 | `create` | `<LISTENING PORT>` | Create a network at startup. |
 | `join` | `<ADDRESS>:<PORT>,<LISTENING PORT>` | Join the network at startup. |
 | `ssl` | `<VOID>` | Use SSL (Secure Socket Layer). However, note that the standard state has nonsense on users who know the protocol. |

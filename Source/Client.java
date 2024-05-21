@@ -45,7 +45,7 @@ public class Client {
 
     public boolean useSSL = false;
 
-    public static final String TIMEOUT = "10000";
+    public static String TIMEOUT = "10000";
 
     public Client() {}
 
