@@ -61,7 +61,7 @@ public class Util {
 
         printWriter.flush();
 
-        return stringWriter.toString().replaceAll("\t", indent(1));
+        return stringWriter.toString().trim().replaceAll("\t", indent(1));
     }
 
     public static String setExceptionMessage(Exception e, String text) {
