@@ -7,6 +7,8 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class Interface extends JFrame {
+    ClassLoader classLoader = this.getClass().getClassLoader();
+
     Client client;
 
     int frameX = 0;
@@ -77,7 +79,7 @@ public class Interface extends JFrame {
             setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setIconImage(new ImageIcon("./Source/Assets/Icon.png").getImage());
+        setIconImage(new ImageIcon(classLoader.getResource("Source/Assets/Icon.png")).getImage());
 
         add(panel, BorderLayout.CENTER);
         setVisible(true);

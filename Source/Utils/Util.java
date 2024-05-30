@@ -398,16 +398,24 @@ public class Util {
     }
 
     public static KeyManagerFactory setKeyManagerFactory(String filePath, String passPhrase) throws Exception {
-        if (filePath == null)
+        return setKeyManagerFactory(new FileInputStream(filePath), passPhrase);
+    }
+
+    public static TrustManagerFactory setTrustManagerFactory(String filePath, String passPhrase) throws Exception {
+        return setTrustManagerFactory(new FileInputStream(filePath), passPhrase);
+    }
+
+    public static KeyManagerFactory setKeyManagerFactory(InputStream inputStream, String passPhrase) throws Exception {
+        if (inputStream == null)
             return null; // Need certificate file path.
 
         if (passPhrase == null)
             passPhrase = "";
 
-        FileInputStream p12 = new FileInputStream(filePath);
+        // FileInputStream p12 = new FileInputStream(filePath);
         KeyStore ks = KeyStore.getInstance("pkcs12");
 
-        ks.load(p12, passPhrase.toCharArray());
+        ks.load(inputStream, passPhrase.toCharArray());
 
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
 
@@ -416,17 +424,17 @@ public class Util {
         return keyManagerFactory;
     }
 
-    public static TrustManagerFactory setTrustManagerFactory(String filePath, String passPhrase) throws Exception {
-        if (filePath == null)
+    public static TrustManagerFactory setTrustManagerFactory(InputStream inputStream, String passPhrase) throws Exception {
+        if (inputStream == null)
             return null; // Need key store file path.
 
         if (passPhrase == null)
             passPhrase = "";
 
-        FileInputStream jks = new FileInputStream(filePath);
+        // FileInputStream jks = new FileInputStream(filePath);
         KeyStore ks = KeyStore.getInstance("JKS");
 
-        ks.load(jks, passPhrase.toCharArray());
+        ks.load(inputStream, passPhrase.toCharArray());
 
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
 
