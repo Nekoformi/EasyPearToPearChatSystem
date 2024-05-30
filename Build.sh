@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -rf ./E=CS.jar
+rm -rf ./Test/E=CS.jar
 
 if [ -d "./Build" ]; then
     rm -rf ./Build/*
@@ -40,5 +40,5 @@ find ./Source -type d -empty -delete
 # Package Application
 
 cd ./Build
-jar -cfm ../E=CS.jar ../Manifest.mf .
+jar -cfm ../Test/E=CS.jar ../Manifest.mf .
 cd ..
