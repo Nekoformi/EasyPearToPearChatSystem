@@ -1,5 +1,9 @@
 # Change log
 
+## E=CS 1.2
+
+- Fix access method for data in JAR files
+
 ## E=CS 1.1
 
 - Add feature: SSL

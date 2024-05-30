@@ -22,6 +22,8 @@ import javax.net.ssl.*;
 public class Client {
     // Note: Clientは実行されるプログラムに対応する。
 
+    ClassLoader classLoader = this.getClass().getClassLoader();
+
     public Console systemConsole = new Console();
     public Console chatConsole = new Console();
     public Catalog memberCatalog = new Catalog();
@@ -36,11 +38,11 @@ public class Client {
     KeyManagerFactory clientKeyManagerFactory;
     TrustManagerFactory authTrustManagerFactory;
 
-    public static final String DEFAULT_SERVER_CERTIFICATE_FILE_PATH = "./Source/Assets/DefaultServerCertificate.p12";
+    public static final String DEFAULT_SERVER_CERTIFICATE_FILE_PATH = "Source/Assets/DefaultServerCertificate.p12";
     public static final String DEFAULT_SERVER_CERTIFICATE_PASS_PHRASE = "Hello server!";
-    public static final String DEFAULT_CLIENT_CERTIFICATE_FILE_PATH = "./Source/Assets/DefaultClientCertificate.p12";
+    public static final String DEFAULT_CLIENT_CERTIFICATE_FILE_PATH = "Source/Assets/DefaultClientCertificate.p12";
     public static final String DEFAULT_CLIENT_CERTIFICATE_PASS_PHRASE = "Hello client!";
-    public static final String DEFAULT_AUTH_KEY_STORE_FILE_PATH = "./Source/Assets/DefaultRootKeyStore.jks";
+    public static final String DEFAULT_AUTH_KEY_STORE_FILE_PATH = "Source/Assets/DefaultRootKeyStore.jks";
     public static final String DEFAULT_AUTH_KEY_STORE_PASS_PHRASE = "Hello root!";
 
     public boolean useSSL = false;
@@ -525,18 +527,24 @@ public class Client {
         if (filePath == null && passPhrase == null) {
             filePath = DEFAULT_SERVER_CERTIFICATE_FILE_PATH;
             passPhrase = DEFAULT_SERVER_CERTIFICATE_PASS_PHRASE;
-        }
 
-        if (filePath == null) {
-            systemConsole.pushErrorLine("No server certificate specified.");
+            try {
+                serverKeyManagerFactory = Util.setKeyManagerFactory(classLoader.getResourceAsStream(filePath), passPhrase);
+            } catch (Exception e) {
+                systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set server certificate."));
+            }
+        } else {
+            if (filePath == null) {
+                systemConsole.pushErrorLine("No server certificate specified.");
 
-            return;
-        }
+                return;
+            }
 
-        try {
-            serverKeyManagerFactory = Util.setKeyManagerFactory(filePath, passPhrase);
-        } catch (Exception e) {
-            systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set server certificate."));
+            try {
+                serverKeyManagerFactory = Util.setKeyManagerFactory(filePath, passPhrase);
+            } catch (Exception e) {
+                systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set server certificate."));
+            }
         }
     }
 
@@ -544,18 +552,24 @@ public class Client {
         if (filePath == null && passPhrase == null) {
             filePath = DEFAULT_CLIENT_CERTIFICATE_FILE_PATH;
             passPhrase = DEFAULT_CLIENT_CERTIFICATE_PASS_PHRASE;
-        }
 
-        if (filePath == null) {
-            systemConsole.pushErrorLine("No client certificate specified.");
+            try {
+                clientKeyManagerFactory = Util.setKeyManagerFactory(classLoader.getResourceAsStream(filePath), passPhrase);
+            } catch (Exception e) {
+                systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set client certificate."));
+            }
+        } else {
+            if (filePath == null) {
+                systemConsole.pushErrorLine("No client certificate specified.");
 
-            return;
-        }
+                return;
+            }
 
-        try {
-            clientKeyManagerFactory = Util.setKeyManagerFactory(filePath, passPhrase);
-        } catch (Exception e) {
-            systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set client certificate."));
+            try {
+                clientKeyManagerFactory = Util.setKeyManagerFactory(filePath, passPhrase);
+            } catch (Exception e) {
+                systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set client certificate."));
+            }
         }
     }
 
@@ -563,18 +577,24 @@ public class Client {
         if (filePath == null && passPhrase == null) {
             filePath = DEFAULT_AUTH_KEY_STORE_FILE_PATH;
             passPhrase = DEFAULT_AUTH_KEY_STORE_PASS_PHRASE;
-        }
 
-        if (filePath == null) {
-            systemConsole.pushErrorLine("No auth key store specified.");
+            try {
+                authTrustManagerFactory = Util.setTrustManagerFactory(classLoader.getResourceAsStream(filePath), passPhrase);
+            } catch (Exception e) {
+                systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set auth key store."));
+            }
+        } else {
+            if (filePath == null) {
+                systemConsole.pushErrorLine("No auth key store specified.");
 
-            return;
-        }
+                return;
+            }
 
-        try {
-            authTrustManagerFactory = Util.setTrustManagerFactory(filePath, passPhrase);
-        } catch (Exception e) {
-            systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set auth key store."));
+            try {
+                authTrustManagerFactory = Util.setTrustManagerFactory(filePath, passPhrase);
+            } catch (Exception e) {
+                systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to set auth key store."));
+            }
         }
     }
 
