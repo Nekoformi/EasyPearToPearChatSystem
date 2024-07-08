@@ -174,6 +174,12 @@ public class Util {
 
                         rec.delete(0, 1);
 
+                        if (buf[i].endsWith(String.valueOf(boxEnd.charAt(boxIndex)))) {
+                            boxIndex = -1;
+
+                            rec.setLength(rec.length() - 1);
+                        }
+
                         break;
                     }
                 }
