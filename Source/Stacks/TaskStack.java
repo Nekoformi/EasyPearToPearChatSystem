@@ -29,7 +29,7 @@ public class TaskStack {
     }
 
     public synchronized Task execute(Node node, Message message, int dataLength, Task task) {
-        if ((dataLength == 0 && message.data == null) || dataLength == message.data.length) {
+        if ((dataLength == 0 && message.dataString == null) || dataLength == message.dataString.length) {
             Task registeredTask = get(message.id);
 
             if (registeredTask == null && task != null) {

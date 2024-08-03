@@ -129,6 +129,15 @@ public class Util {
         return sb.toString();
     }
 
+    public static byte[] concatByteArray(byte[]... rec) {
+        ByteArrayOutputStream res = new ByteArrayOutputStream();
+
+        if (rec != null)
+            Arrays.stream(rec).filter(Objects::nonNull).forEach(val -> res.write(val, 0, val.length));
+
+        return res.toByteArray();
+    }
+
     // Edit
 
     public static String omitString(String text, int byteLength, boolean displayDataLength) {
@@ -225,6 +234,10 @@ public class Util {
         return a <= b ? a : b;
     }
 
+    public static String convertByteArrayToString(byte[] data) {
+        return new String(data, CHARSET);
+    }
+
     public static String convertByteArrayToHexString(byte[] data) {
         StringBuffer sb = new StringBuffer();
 
@@ -232,6 +245,19 @@ public class Util {
             sb.append(String.format("%02x", data[i]));
 
         return sb.toString();
+    }
+
+    public static byte[] convertStringToByteArray(String data) {
+        return data.getBytes(CHARSET);
+    }
+
+    public static byte[] convertHexStringToByteArray(String data) {
+        byte[] res = new byte[data.length() / 2];
+
+        for (int i = 0; i < res.length; i++)
+            res[i] = (byte)Integer.parseInt(data.substring(i * 2, (i + 1) * 2), 16);
+
+        return res;
     }
 
     public static String convertByteArrayToBase64(byte[] data) {
@@ -449,13 +475,13 @@ public class Util {
         return trustManagerFactory;
     }
 
-    public static String encryptStringWithAesCommonKey(String data, SecretKey commonKey) {
+    public static byte[] encryptByteArrayWithAesCommonKey(byte[] data, SecretKey commonKey) {
         // Use a single-use common key!
 
-        return encryptStringWithAesCommonKey(data, commonKey, generateGcmParameter());
+        return encryptByteArrayWithAesCommonKey(data, commonKey, generateGcmParameter());
     }
 
-    public static String encryptStringWithAesCommonKey(String data, SecretKey commonKey, GCMParameterSpec gcmParameter) {
+    public static byte[] encryptByteArrayWithAesCommonKey(byte[] data, SecretKey commonKey, GCMParameterSpec gcmParameter) {
         byte[] aad = MAGIC_WORD.getBytes(CHARSET);
 
         try {
@@ -464,7 +490,7 @@ public class Util {
             cipher.init(Cipher.ENCRYPT_MODE, commonKey, gcmParameter);
             cipher.updateAAD(aad);
 
-            return convertByteArrayToBase64(cipher.doFinal(data.getBytes(CHARSET)));
+            return cipher.doFinal(data);
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -472,13 +498,13 @@ public class Util {
         }
     }
 
-    public static String decryptStringWithAesCommonKey(String data, SecretKey commonKey) {
+    public static byte[] decryptByteArrayWithAesCommonKey(byte[] data, SecretKey commonKey) {
         // Use a single-use common key!
 
-        return decryptStringWithAesCommonKey(data, commonKey, generateGcmParameter());
+        return decryptByteArrayWithAesCommonKey(data, commonKey, generateGcmParameter());
     }
 
-    public static String decryptStringWithAesCommonKey(String data, SecretKey commonKey, GCMParameterSpec gcmParameter) {
+    public static byte[] decryptByteArrayWithAesCommonKey(byte[] data, SecretKey commonKey, GCMParameterSpec gcmParameter) {
         byte[] aad = MAGIC_WORD.getBytes(CHARSET);
 
         try {
@@ -487,12 +513,72 @@ public class Util {
             cipher.init(Cipher.DECRYPT_MODE, commonKey, gcmParameter);
             cipher.updateAAD(aad);
 
-            return new String(cipher.doFinal(convertBase64ToByteArray(data)), CHARSET);
+            return cipher.doFinal(data);
         } catch (Exception e) {
             e.printStackTrace();
 
             return null;
         }
+    }
+
+    public static String encryptByteArrayToBase64WithAesCommonKey(byte[] data, SecretKey commonKey) {
+        // Use a single-use common key!
+
+        return encryptByteArrayToBase64WithAesCommonKey(data, commonKey, generateGcmParameter());
+    }
+
+    public static String encryptByteArrayToBase64WithAesCommonKey(byte[] data, SecretKey commonKey, GCMParameterSpec gcmParameter) {
+        return convertByteArrayToBase64(encryptByteArrayWithAesCommonKey(data, commonKey, gcmParameter));
+    }
+
+    public static byte[] encryptStringToByteArrayWithAesCommonKey(String data, SecretKey commonKey) {
+        // Use a single-use common key!
+
+        return encryptStringToByteArrayWithAesCommonKey(data, commonKey, generateGcmParameter());
+    }
+
+    public static byte[] encryptStringToByteArrayWithAesCommonKey(String data, SecretKey commonKey, GCMParameterSpec gcmParameter) {
+        return encryptByteArrayWithAesCommonKey(data.getBytes(CHARSET), commonKey, gcmParameter);
+    }
+
+    public static String encryptStringToBase64WithAesCommonKey(String data, SecretKey commonKey) {
+        // Use a single-use common key!
+
+        return encryptStringToBase64WithAesCommonKey(data, commonKey, generateGcmParameter());
+    }
+
+    public static String encryptStringToBase64WithAesCommonKey(String data, SecretKey commonKey, GCMParameterSpec gcmParameter) {
+        return convertByteArrayToBase64(encryptStringToByteArrayWithAesCommonKey(data, commonKey, gcmParameter));
+    }
+
+    public static byte[] decryptBase64ToByteArrayWithAesCommonKey(String data, SecretKey commonKey) {
+        // Use a single-use common key!
+
+        return decryptBase64ToByteArrayWithAesCommonKey(data, commonKey, generateGcmParameter());
+    }
+
+    public static byte[] decryptBase64ToByteArrayWithAesCommonKey(String data, SecretKey commonKey, GCMParameterSpec gcmParameter) {
+        return decryptByteArrayWithAesCommonKey(convertBase64ToByteArray(data), commonKey, gcmParameter);
+    }
+
+    public static String decryptByteArrayToStringWithAesCommonKey(byte[] data, SecretKey commonKey) {
+        // Use a single-use common key!
+
+        return decryptByteArrayToStringWithAesCommonKey(data, commonKey, generateGcmParameter());
+    }
+
+    public static String decryptByteArrayToStringWithAesCommonKey(byte[] data, SecretKey commonKey, GCMParameterSpec gcmParameter) {
+        return new String(decryptByteArrayWithAesCommonKey(data, commonKey, gcmParameter), CHARSET);
+    }
+
+    public static String decryptBase64ToStringWithAesCommonKey(String data, SecretKey commonKey) {
+        // Use a single-use common key!
+
+        return decryptBase64ToStringWithAesCommonKey(data, commonKey, generateGcmParameter());
+    }
+
+    public static String decryptBase64ToStringWithAesCommonKey(String data, SecretKey commonKey, GCMParameterSpec gcmParameter) {
+        return decryptByteArrayToStringWithAesCommonKey(convertBase64ToByteArray(data), commonKey, gcmParameter);
     }
 
     public static byte[] encryptByteArrayWithRsaPublicKey(byte[] data, RSAPublicKey publicKey) {
@@ -551,19 +637,35 @@ public class Util {
         }
     }
 
-    public static String encryptCommonKeyWithRsaPublicKey(SecretKey commonKey, RSAPublicKey publicKey) {
-        return convertByteArrayToBase64(encryptByteArrayWithRsaPublicKey(commonKey.getEncoded(), publicKey));
+    public static byte[] encryptCommonKeyToByteArrayWithRsaPublicKey(SecretKey commonKey, RSAPublicKey publicKey) {
+        return encryptByteArrayWithRsaPublicKey(commonKey.getEncoded(), publicKey);
     }
 
-    public static String encryptCommonKeyWithRsaPrivateKey(SecretKey commonKey, RSAPrivateKey privateKey) {
-        return convertByteArrayToBase64(encryptByteArrayWithRsaPrivateKey(commonKey.getEncoded(), privateKey));
+    public static byte[] encryptCommonKeyToByteArrayWithRsaPrivateKey(SecretKey commonKey, RSAPrivateKey privateKey) {
+        return encryptByteArrayWithRsaPrivateKey(commonKey.getEncoded(), privateKey);
     }
 
-    public static SecretKey decryptCommonKeyWithRsaPublicKey(String data, RSAPublicKey publicKey) {
-        return getAesCommonKeyFromByteArray(decryptByteArrayWithRsaPublicKey(convertBase64ToByteArray(data), publicKey));
+    public static String encryptCommonKeyToBase64WithRsaPublicKey(SecretKey commonKey, RSAPublicKey publicKey) {
+        return convertByteArrayToBase64(encryptCommonKeyToByteArrayWithRsaPublicKey(commonKey, publicKey));
     }
 
-    public static SecretKey decryptCommonKeyWithRsaPrivateKey(String data, RSAPrivateKey privateKey) {
-        return getAesCommonKeyFromByteArray(decryptByteArrayWithRsaPrivateKey(convertBase64ToByteArray(data), privateKey));
+    public static String encryptCommonKeyToBase64WithRsaPrivateKey(SecretKey commonKey, RSAPrivateKey privateKey) {
+        return convertByteArrayToBase64(encryptCommonKeyToByteArrayWithRsaPrivateKey(commonKey, privateKey));
+    }
+
+    public static SecretKey decryptByteArrayToCommonKeyWithRsaPublicKey(byte[] data, RSAPublicKey publicKey) {
+        return getAesCommonKeyFromByteArray(decryptByteArrayWithRsaPublicKey(data, publicKey));
+    }
+
+    public static SecretKey decryptByteArrayToCommonKeyWithRsaPrivateKey(byte[] data, RSAPrivateKey privateKey) {
+        return getAesCommonKeyFromByteArray(decryptByteArrayWithRsaPrivateKey(data, privateKey));
+    }
+
+    public static SecretKey decryptBase64ToCommonKeyWithRsaPublicKey(String data, RSAPublicKey publicKey) {
+        return decryptByteArrayToCommonKeyWithRsaPublicKey(convertBase64ToByteArray(data), publicKey);
+    }
+
+    public static SecretKey decryptBase64ToCommonKeyWithRsaPrivateKey(String data, RSAPrivateKey privateKey) {
+        return decryptByteArrayToCommonKeyWithRsaPrivateKey(convertBase64ToByteArray(data), privateKey);
     }
 }

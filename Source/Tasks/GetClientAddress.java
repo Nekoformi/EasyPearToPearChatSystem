@@ -13,9 +13,9 @@ public class GetClientAddress extends NetworkTask {
     public GetClientAddress set(Client client, Node node, Message work) {
         super.set(client, node, work);
 
-        setProperties(Integer.parseInt(work.data[0]), 10, "req-ca", "ret-ca");
+        setProperties(Integer.parseInt(work.getStringData(0)), 10, "req-ca", "ret-ca");
 
-        String targetUserId = work.data[1].substring(1);
+        String targetUserId = work.getStringData(1).substring(1);
 
         if (myProfile.id.equals(targetUserId))
             skipSend = true;
@@ -25,12 +25,12 @@ public class GetClientAddress extends NetworkTask {
 
     @Override
     void send(Node node) {
-        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), work.data[1]);
+        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), work.getStringData(1));
     }
 
     @Override
     void resolve(Node node, Message work) {
-        updateNodeStore(node, work.data);
+        updateNodeStore(node, work.getStringData());
     }
 
     @Override
@@ -45,7 +45,7 @@ public class GetClientAddress extends NetworkTask {
 
     @Override
     void response() {
-        String targetUserId = work.data[1].substring(1);
+        String targetUserId = work.getStringData(1).substring(1);
 
         if (isOriginalTask()) {
             responseOfMine(targetUserId);
@@ -71,8 +71,8 @@ public class GetClientAddress extends NetworkTask {
             return;
         }
 
-        SecretKey decryptedCommonKey = Util.decryptCommonKeyWithRsaPublicKey(res.data[1], targetUser.publicKey);
-        String decryptedUserAddress = Util.decryptStringWithAesCommonKey(res.data[0], decryptedCommonKey);
+        SecretKey decryptedCommonKey = Util.decryptBase64ToCommonKeyWithRsaPublicKey(res.data[1], targetUser.publicKey);
+        String decryptedUserAddress = Util.decryptBase64ToStringWithAesCommonKey(res.data[0], decryptedCommonKey);
 
         if (decryptedCommonKey == null || decryptedUserAddress == null) {
             pushErrorLine("Failed to decrypt data ... may be corrupted or tampered with.");
@@ -103,8 +103,8 @@ public class GetClientAddress extends NetworkTask {
         } else {
             SecretKey commonKey = Util.generateAesCommonKey();
 
-            String encryptedUserAddress = Util.encryptStringWithAesCommonKey(client.nodeListener.getAddress(), commonKey);
-            String encryptedCommonKey = Util.encryptCommonKeyWithRsaPrivateKey(commonKey, myProfile.privateKey);
+            String encryptedUserAddress = Util.encryptStringToBase64WithAesCommonKey(client.nodeListener.getAddress(), commonKey);
+            String encryptedCommonKey = Util.encryptCommonKeyToBase64WithRsaPrivateKey(commonKey, myProfile.privateKey);
 
             if (commonKey == null || encryptedUserAddress == null || encryptedCommonKey == null) {
                 pushErrorLine("Failed to encrypt data.");

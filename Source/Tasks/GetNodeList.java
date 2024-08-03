@@ -9,7 +9,7 @@ public class GetNodeList extends NetworkTask {
     public GetNodeList set(Client client, Node node, Message work) {
         super.set(client, node, work);
 
-        setProperties(Integer.parseInt(work.data[0]), 10, "req-nl", "ret-nl");
+        setProperties(Integer.parseInt(work.getStringData(0)), 10, "req-nl", "ret-nl");
 
         return this;
     }
@@ -21,7 +21,7 @@ public class GetNodeList extends NetworkTask {
 
     @Override
     void resolve(Node node, Message work) {
-        updateNodeStore(node, work.data[0]);
+        updateNodeStore(node, work.getStringData(0));
     }
 
     @Override

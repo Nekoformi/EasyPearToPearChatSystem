@@ -19,13 +19,18 @@ import java.net.*;
 public class Node {
     // Note: Nodeは通信可能なコンピューター（他のNode）に対応する。
 
+    public static final boolean SEND_IN_BINARY = true;
+
     public Client client;
     public Socket socket;
 
     public User user;
 
-    BufferedReader reader;
-    PrintWriter writer;
+    InputStream binaryReader;
+    OutputStream binaryWriter;
+
+    BufferedReader stringReader;
+    PrintWriter stringWriter;
 
     NodeReceiver nodeReceiver;
 
@@ -36,8 +41,13 @@ public class Node {
         client.systemConsole.pushMainLine("Connect to new node: " + Util.getSocketInfoString(socket));
 
         try {
-            reader = createReader();
-            writer = createWriter();
+            if (SEND_IN_BINARY) {
+                binaryReader = createBinaryReader();
+                binaryWriter = createBinaryWriter();
+            } else {
+                stringReader = createStringReader();
+                stringWriter = createStringWriter();
+            }
 
             client.systemConsole.pushSubLine("Start a node stream...");
 
@@ -60,20 +70,38 @@ public class Node {
         client.nodeStack.remove(this);
     }
 
-    public BufferedReader createReader() throws IOException {
+    public InputStream createBinaryReader() throws IOException {
+        return socket.getInputStream();
+    }
+
+    public OutputStream createBinaryWriter() throws IOException {
+        return socket.getOutputStream();
+    }
+
+    public BufferedReader createStringReader() throws IOException {
         return new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 
-    public PrintWriter createWriter() throws IOException {
+    public PrintWriter createStringWriter() throws IOException {
         return new PrintWriter(socket.getOutputStream(), true);
     }
 
-    public void closeReader(BufferedReader reader) throws IOException {
+    public void closeBinaryReader(InputStream reader) throws IOException {
         if (reader != null)
             reader.close();
     }
 
-    public void closeWriter(PrintWriter writer) throws IOException {
+    public void closeBinaryWriter(OutputStream writer) throws IOException {
+        if (writer != null)
+            writer.close();
+    }
+
+    public void closeStringReader(BufferedReader reader) throws IOException {
+        if (reader != null)
+            reader.close();
+    }
+
+    public void closeStringWriter(PrintWriter writer) throws IOException {
         if (writer != null)
             writer.close();
     }
@@ -85,7 +113,21 @@ public class Node {
     public void sendMessage(Message message) {
         client.systemConsole.pushSubLine("Send message: \"" + message.display(16) + "\" to " + Util.getSocketInfoString(socket));
 
-        writer.println(message.stringify());
+        try {
+            if (SEND_IN_BINARY) {
+                binaryWriter.write(message.binarize());
+            } else {
+                stringWriter.println(message.stringify());
+            }
+        } catch (IOException e) {
+            client.systemConsole.pushErrorLine("Failed to send message.");
+        }
+    }
+
+    public void sendMessage(String command, String id, byte[] data) {
+        Message message = new Message(client.systemConsole, command, id, data);
+
+        sendMessage(message);
     }
 
     public void sendMessage(String command, String id, String... data) {
@@ -107,15 +149,10 @@ public class Node {
 
         public void run() {
             try {
-                while (!done) {
-                    String line = reader.readLine();
-
-                    if (line == null)
-                        continue;
-
-                    Message message = new Message(client.systemConsole, line, true).get();
-
-                    executeCommand(message);
+                if (SEND_IN_BINARY) {
+                    readBinary();
+                } else {
+                    readString();
                 }
             } catch (IOException e) {
                 if (!done)
@@ -126,8 +163,11 @@ public class Node {
                 client.systemConsole.pushSubLine("Close the node stream...");
 
                 try {
-                    closeReader(reader);
-                    closeWriter(writer);
+                    closeBinaryReader(binaryReader);
+                    closeBinaryWriter(binaryWriter);
+
+                    closeStringReader(stringReader);
+                    closeStringWriter(stringWriter);
 
                     socket.close();
                 } catch (Exception e) {
@@ -135,6 +175,54 @@ public class Node {
                 }
 
                 nodeReceiver = null;
+            }
+        }
+
+        void readBinary() throws Exception {
+            while (!done) {
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+                while (true) {
+                    byte[] buffer = new byte[1024];
+                    int bufferLength;
+
+                    bufferLength = binaryReader.read(buffer);
+
+                    if (bufferLength == -1) {
+                        done = true;
+
+                        break;
+                    }
+
+                    byteArrayOutputStream.write(buffer, 0, bufferLength);
+
+                    if (bufferLength < buffer.length)
+                        break;
+                }
+
+                if (byteArrayOutputStream.size() > 0) {
+                    Message message = new Message(client.systemConsole, byteArrayOutputStream.toByteArray(), true).get();
+
+                    executeCommand(message);
+                }
+            }
+        }
+
+        void readString() throws Exception {
+            while (!done) {
+                String line = stringReader.readLine();
+
+                if (line == null) {
+                    done = true;
+
+                    break;
+                }
+
+                if (line.length() > 0) {
+                    Message message = new Message(client.systemConsole, line, true).get();
+
+                    executeCommand(message);
+                }
             }
         }
 
@@ -163,63 +251,63 @@ public class Node {
         // 3: Possible, and a fatal vulnerability.
 
         switch (message.command) {
-        case "req-nl": // - | 1 | 1
+        case Message.NAME_REQUEST_NODE_LIST: // - | 1 | 1
             executeTask(message, 1, new GetNodeList()); // TIMEOUT
 
             break;
-        case "ret-nl": // 2 | - | 0
+        case Message.NAME_RETURN_NODE_LIST: // 2 | - | 0
             executeTask(message, 1, null); // NODE STRUCTURE
 
             break;
-        case "req-ul": // - | 1 | 1
+        case Message.NAME_REQUEST_USER_LIST: // - | 1 | 1
             executeTask(message, 2, new GetUserList()); // TIMEOUT, PUBLIC KEY
 
             break;
-        case "ret-ul": // 0 | 1 | 0
+        case Message.NAME_RETURN_USER_LIST: // 0 | 1 | 0
             executeTask(message, 3, null); // NODE STRUCTURE, ENCRYPTED USER DATA, ENCRYPTED COMMON KEY
 
             break;
-        case "req-ca": // - | 1 | 1
+        case Message.NAME_REQUEST_CLIENT_ADDRESS: // - | 1 | 1
             executeTask(message, 2, new GetClientAddress()); // TIMEOUT, TARGET USER ID
 
             break;
-        case "ret-ca": // 0 | 1 | 0
+        case Message.NAME_RETURN_CLIENT_ADDRESS: // 0 | 1 | 0
             executeTask(message, 2, null); // ENCRYPTED USER ADDRESS, ENCRYPTED COMMON KEY
 
             break;
-        case "pst-up": // 0 | 0 | 1
+        case Message.NAME_POST_USER_PROFILE: // 0 | 0 | 1
             executeTask(message, 5, new PostUserProfile()); // TIMEOUT, USER ID, USER DATA, TARGET USER ID, SECURE HASH
 
             break;
-        case "upd-up": // 0 | 0 | 1
+        case Message.NAME_UPDATE_USER_PROFILE: // 0 | 0 | 1
             executeTask(message, 4, new UpdateUserProfile()); // TIMEOUT, USER ID, USER DATA, SECURE HASH
 
             break;
-        case "rem-up": // 0 | 0 | 3
+        case Message.NAME_REMOVE_USER_PROFILE: // 0 | 0 | 3
             executeTask(message, 3, new RemoveUserProfile()); // TIMEOUT, USER ID, SECURE HASH
 
             break;
-        case "rec-up": // - | - | 0
+        case Message.NAME_RECEIVE_USER_PROFILE: // - | - | 0
             executeTask(message, 0, null); // NULL
 
             break;
-        case "pst-cm": // 0 | 0 | 3
+        case Message.NAME_POST_CHAT_MESSAGE: // 0 | 0 | 3
             executeTask(message, 4, new PostChatMessage()); // TIMEOUT, USER ID, MESSAGE, SECURE HASH
 
             break;
-        case "rec-cm": // - | - | 0
+        case Message.NAME_RECEIVE_CHAT_MESSAGE: // - | - | 0
             executeTask(message, 0, null); // NULL
 
             break;
-        case "dup": // - | - | 0
+        case Message.NAME_DUPLICATE: // - | - | 0
             executeTask(message, 0, null); // NULL
 
             break;
-        case "alg": // - | 1 | 1
+        case Message.NAME_ALIGNMENT: // - | 1 | 1
             executeTask(message, 1, new ConnectClient()); // USER DATA
 
             break;
-        case "let": // - | - | 1
+        case Message.NAME_LEFT: // - | - | 1
             executeTask(message, 0, new DisconnectClient()); // NULL
 
             break;

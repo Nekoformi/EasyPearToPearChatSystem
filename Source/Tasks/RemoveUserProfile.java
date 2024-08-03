@@ -9,13 +9,13 @@ public class RemoveUserProfile extends NetworkTask {
     public RemoveUserProfile set(Client client, Node node, Message work) {
         super.set(client, node, work);
 
-        setProperties(Integer.parseInt(work.data[0]), 10, "rem-up", "rec-up");
+        setProperties(Integer.parseInt(work.getStringData(0)), 10, "rem-up", "rec-up");
 
         if (isOriginalTask())
             return this;
 
-        String userId = work.data[1].substring(1);
-        String secureHash = work.data[2];
+        String userId = work.getStringData(1).substring(1);
+        String secureHash = work.getStringData(2);
 
         if (!work.check(1, Util.TYPE_USER_ID) || !client.checkDataWithUserProfile(userId, work.id, secureHash))
             return this;
@@ -31,7 +31,10 @@ public class RemoveUserProfile extends NetworkTask {
 
     @Override
     void send(Node node) {
-        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), work.data[1], work.data[2]);
+        String userId = work.getStringData(1);
+        String secureHash = work.getStringData(2);
+
+        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), userId, secureHash);
     }
 
     @Override

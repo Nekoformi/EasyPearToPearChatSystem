@@ -4,4 +4,7 @@
         "lib/**/*.jar",
         "Library/flatlaf-1.6.1.jar"
     ],
+    "cSpell.words": [
+        "binarize"
+    ],
 }

@@ -15,19 +15,19 @@ public class GetUserList extends NetworkTask {
     public GetUserList set(Client client, Node node, Message work) {
         super.set(client, node, work);
 
-        setProperties(Integer.parseInt(work.data[0]), 10, "req-ul", "ret-ul");
+        setProperties(Integer.parseInt(work.getStringData(0)), 10, "req-ul", "ret-ul");
 
         return this;
     }
 
     @Override
     void send(Node node) {
-        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), work.data[1]);
+        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), work.getStringData(1));
     }
 
     @Override
     void resolve(Node node, Message work) {
-        updateNodeStore(node, work.data);
+        updateNodeStore(node, work.getStringData());
     }
 
     @Override
@@ -66,8 +66,8 @@ public class GetUserList extends NetworkTask {
         List<User> newUserStack = new ArrayList<User>();
 
         for (int i = 0; i < res.length; i++) {
-            SecretKey decryptedCommonKey = Util.decryptCommonKeyWithRsaPrivateKey(res[i].data[2], myProfile.privateKey);
-            String decryptedUserData = Util.decryptStringWithAesCommonKey(res[i].data[1], decryptedCommonKey);
+            SecretKey decryptedCommonKey = Util.decryptBase64ToCommonKeyWithRsaPrivateKey(res[i].data[2], myProfile.privateKey);
+            String decryptedUserData = Util.decryptBase64ToStringWithAesCommonKey(res[i].data[1], decryptedCommonKey);
 
             if (decryptedCommonKey == null || decryptedUserData == null) {
                 pushErrorLine("Failed to decrypt data ... may be corrupted or tampered with.");
@@ -93,9 +93,9 @@ public class GetUserList extends NetworkTask {
     void responseOfOthers(String nodeStructure) {
         SecretKey commonKey = Util.generateAesCommonKey();
 
-        String encryptedUserData = Util.encryptStringWithAesCommonKey(myProfile.stringify(), commonKey);
-        String encryptedCommonKey = Util.encryptCommonKeyWithRsaPublicKey(commonKey,
-                Util.getRsaPublicKeyFromByteArray(Util.convertBase64ToByteArray(work.data[1])));
+        String encryptedUserData = Util.encryptStringToBase64WithAesCommonKey(myProfile.stringify(), commonKey);
+        String encryptedCommonKey = Util.encryptCommonKeyToBase64WithRsaPublicKey(commonKey,
+                Util.getRsaPublicKeyFromByteArray(Util.convertBase64ToByteArray(work.getStringData(1))));
 
         if (commonKey == null || encryptedUserData == null || encryptedCommonKey == null) {
             pushErrorLine("Failed to encrypt data.");

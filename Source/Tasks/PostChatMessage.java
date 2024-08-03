@@ -10,11 +10,11 @@ public class PostChatMessage extends NetworkTask {
     public PostChatMessage set(Client client, Node node, Message work) {
         super.set(client, node, work);
 
-        setProperties(Integer.parseInt(work.data[0]), 10, "pst-cm", "rec-cm");
+        setProperties(Integer.parseInt(work.getStringData(0)), 10, "pst-cm", "rec-cm");
 
-        String userId = work.data[1].substring(1);
-        String content = work.data[2];
-        String secureHash = work.data[3];
+        String userId = work.getStringData(1).substring(1);
+        String content = work.getStringData(2);
+        String secureHash = work.getStringData(3);
 
         if (!(isOriginalTask() || (work.check(1, Util.TYPE_USER_ID) && client.checkDataWithUserProfile(userId, content, secureHash))))
             return this;
@@ -29,7 +29,11 @@ public class PostChatMessage extends NetworkTask {
 
     @Override
     void send(Node node) {
-        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), work.data[1], work.data[2], work.data[3]);
+        String userId = work.getStringData(1);
+        String content = work.getStringData(2);
+        String secureHash = work.getStringData(3);
+
+        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), userId, content, secureHash);
     }
 
     @Override
