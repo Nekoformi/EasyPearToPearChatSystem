@@ -282,15 +282,15 @@ public class Client {
         case "create":
         case "c":
             if (message.check(0, Util.TYPE_IP_PORT))
-                createNetwork(Integer.parseInt(message.data[0]));
+                createNetwork(Integer.parseInt(message.getStringData(0)));
 
             break;
         case "join":
         case "j":
             if (message.check(0, Util.TYPE_IP_ADDRESS_PORT) && message.check(1, Util.TYPE_IP_PORT)) {
-                String[] buf = message.data[0].split(":");
+                String[] buf = message.getStringData(0).split(":");
 
-                joinNetwork(buf[0], Integer.parseInt(buf[1]), Integer.parseInt(message.data[1]));
+                joinNetwork(buf[0], Integer.parseInt(buf[1]), Integer.parseInt(message.getStringData(1)));
             }
 
             break;
@@ -328,12 +328,12 @@ public class Client {
             break;
         case "connect":
             if (message.check(0, Util.TYPE_USER_ID))
-                connectNode(message.data[0].substring(1));
+                connectNode(message.getStringData(0).substring(1));
 
             break;
         case "disconnect":
             if (message.check(0, Util.TYPE_USER_ID))
-                disconnectNode(message.data[0].substring(1), false);
+                disconnectNode(message.getStringData(0).substring(1), false);
 
             break;
         default:

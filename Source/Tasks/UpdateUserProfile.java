@@ -10,14 +10,14 @@ public class UpdateUserProfile extends NetworkTask {
     public UpdateUserProfile set(Client client, Node node, Message work) {
         super.set(client, node, work);
 
-        setProperties(Integer.parseInt(work.data[0]), 10, "upd-up", "rec-up");
+        setProperties(Integer.parseInt(work.getStringData(0)), 10, "upd-up", "rec-up");
 
         if (isOriginalTask())
             return this;
 
-        String userId = work.data[1].substring(1);
-        String content = work.data[2];
-        String secureHash = work.data[3];
+        String userId = work.getStringData(1).substring(1);
+        String content = work.getStringData(2);
+        String secureHash = work.getStringData(3);
 
         if (!work.check(1, Util.TYPE_USER_ID) || !client.checkDataWithUserProfile(userId, content, secureHash))
             return this;
@@ -29,7 +29,11 @@ public class UpdateUserProfile extends NetworkTask {
 
     @Override
     void send(Node node) {
-        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), work.data[1], work.data[2], work.data[3]);
+        String userId = work.getStringData(1);
+        String content = work.getStringData(2);
+        String secureHash = work.getStringData(3);
+
+        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), userId, content, secureHash);
     }
 
     @Override

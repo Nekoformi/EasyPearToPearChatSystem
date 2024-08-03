@@ -24,7 +24,7 @@ public class DisconnectClient extends Task {
 
             client.userStack.updateUserList();
 
-            if (work.data == null && client.nodeStack.carbon().size() == 0) {
+            if (work.getStringData() == null && client.nodeStack.carbon().size() == 0) {
                 client.systemConsole.pushWarningLine("You have been disconnected from all nodes.");
 
                 client.leaveNetwork();

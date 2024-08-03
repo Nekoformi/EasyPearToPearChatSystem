@@ -129,7 +129,7 @@ public class NetworkTask extends Task {
         if (true)
             return;
 
-        updateNodeStore(node, work.data);
+        updateNodeStore(node, work.getStringData());
     }
 
     @SuppressWarnings("unused")

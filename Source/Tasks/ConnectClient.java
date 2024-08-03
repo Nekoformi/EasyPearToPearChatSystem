@@ -14,7 +14,7 @@ public class ConnectClient extends Task {
 
     public void run() {
         if (node != null && node.user == null) {
-            node.user = client.userStack.add(work.data[0], false);
+            node.user = client.userStack.add(work.getStringData(0), false);
 
             node.user.setNode(node);
 

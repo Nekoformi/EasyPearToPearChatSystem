@@ -11,21 +11,21 @@ public class PostUserProfile extends NetworkTask {
     public PostUserProfile set(Client client, Node node, Message work) {
         super.set(client, node, work);
 
-        setProperties(Integer.parseInt(work.data[0]), 10, "pst-up", "rec-up");
+        setProperties(Integer.parseInt(work.getStringData(0)), 10, "pst-up", "rec-up");
 
         if (!work.check(1, Util.TYPE_USER_ID) || !work.check(3, Util.TYPE_USER_ID))
             return this;
 
-        String userId = work.data[1].substring(1);
-        String targetUserId = work.data[3].substring(1);
+        String userId = work.getStringData(1).substring(1);
+        String targetUserId = work.getStringData(3).substring(1);
 
         if (!myProfile.id.equals(targetUserId))
             return this;
 
         skipSend = true;
 
-        String content = work.data[2];
-        String secureHash = work.data[4];
+        String content = work.getStringData(2);
+        String secureHash = work.getStringData(4);
 
         if (!client.checkDataWithMyProfile(content, secureHash))
             return this;
@@ -39,7 +39,12 @@ public class PostUserProfile extends NetworkTask {
 
     @Override
     void send(Node node) {
-        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), work.data[1], work.data[2], work.data[3], work.data[4]);
+        String userId = work.getStringData(1);
+        String content = work.getStringData(2);
+        String targetUserId = work.getStringData(3);
+        String secureHash = work.getStringData(4);
+
+        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), userId, content, targetUserId, secureHash);
     }
 
     @Override
