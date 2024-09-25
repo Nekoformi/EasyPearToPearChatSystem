@@ -70,6 +70,7 @@ Hello world!
 | `n` `name` | `<STRING ...>` | Set the username. |
 | `m` `message` | `<STRING ...>` | Send chat message. |
 | `u` `update` | `<VOID>` | Update user list. |
+| `ls` `list` | `<VOID>` | Show user list. |
 | `cls` `clear` | `<VOID>` | Clear consoles. |
 | `clc` `clear-chat` | `<VOID>` | Clear chat history. |
 | `cll` `clear-log` | `<VOID>` | Clear log history. |

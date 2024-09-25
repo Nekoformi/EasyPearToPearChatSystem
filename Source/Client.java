@@ -319,6 +319,11 @@ public class Client {
             userStack.getUserList();
 
             break;
+        case "list":
+        case "ls":
+            userStack.display();
+
+            break;
         case "clear-chat":
         case "clc":
             chatConsole.clearAllLine();

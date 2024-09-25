@@ -185,6 +185,16 @@ public class UserStack {
         return res.toArray(new String[res.size()]);
     }
 
+    public void display() {
+        StringBuffer res = new StringBuffer("Member:");
+        String[] list = list();
+
+        for (String item : list)
+            res.append("\n- " + item);
+
+        client.systemConsole.pushMainLine(res.toString());
+    }
+
     public void clear() {
         userStack.clear();
 
