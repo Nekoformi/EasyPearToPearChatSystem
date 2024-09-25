@@ -3,6 +3,8 @@
 ## E=CS 1.2
 
 - Fix access method for data in JAR files
+- Add command: "clc | clear-chat"
+- Add command: "cll | clear-log"
 
 ## E=CS 1.1
 

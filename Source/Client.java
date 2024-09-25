@@ -319,11 +319,26 @@ public class Client {
             userStack.getUserList();
 
             break;
-        case "clear":
-        case "cls":
+        case "clear-chat":
+        case "clc":
             chatConsole.clearAllLine();
 
             systemConsole.pushSubLine("Cleared chat history.");
+
+            break;
+        case "clear-log":
+        case "cll":
+            systemConsole.clearAllLine();
+
+            systemConsole.pushSubLine("Cleared log history.");
+
+            break;
+        case "clear":
+        case "cls":
+            chatConsole.clearAllLine();
+            systemConsole.clearAllLine();
+
+            systemConsole.pushSubLine("Cleared chat & log history.");
 
             break;
         case "connect":
