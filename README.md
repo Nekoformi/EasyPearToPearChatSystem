@@ -71,6 +71,7 @@ Hello world!
 | `m` `message` | `<STRING ...>` | Send chat message. |
 | `u` `update` | `<VOID>` | Update user list. |
 | `ls` `list` | `<VOID>` | Show user list. |
+| `lsk` `list-key` | `<VOID>` | Show the public keys of all users. |
 | `cls` `clear` | `<VOID>` | Clear consoles. |
 | `clc` `clear-chat` | `<VOID>` | Clear chat history. |
 | `cll` `clear-log` | `<VOID>` | Clear log history. |

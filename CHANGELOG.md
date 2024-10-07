@@ -6,6 +6,7 @@
 - Add command: "clc | clear-chat"
 - Add command: "cll | clear-log"
 - Add command: "ls | list"
+- Add command: "lsk | list-key"
 
 ## E=CS 1.1
 

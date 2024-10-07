@@ -62,7 +62,7 @@ public class GetUserList extends NetworkTask {
             return;
         }
 
-        List<User> currentUserStack = client.userStack.carbon();
+        List<User> currentUserStack = client.userStack.carbon(false);
         List<User> newUserStack = new ArrayList<User>();
 
         for (int i = 0; i < res.length; i++) {

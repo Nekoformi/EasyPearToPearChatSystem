@@ -173,24 +173,43 @@ public class UserStack {
         return userStack.stream().filter(user -> user.id.equals(id)).findFirst().orElse(null);
     }
 
-    public List<User> carbon() {
-        return userStack.stream().collect(Collectors.toList());
+    public List<User> carbon(boolean includeMyProfile) {
+        List<User> res = userStack.stream().collect(Collectors.toList());
+
+        if (includeMyProfile)
+            res.add(0, myProfile);
+
+        return res;
     }
 
-    public String[] list() {
+    public String[] list(boolean includeMyProfile) {
         List<String> res = userStack.stream().map(user -> user.display()).collect(Collectors.toList());
 
-        res.add(0, myProfile.name + " (ME)");
+        if (includeMyProfile)
+            res.add(0, myProfile.name + " (ME)");
 
         return res.toArray(new String[res.size()]);
     }
 
-    public void display() {
+    public void displayUser() {
         StringBuffer res = new StringBuffer("Member:");
-        String[] list = list();
 
-        for (String item : list)
-            res.append("\n- " + item);
+        carbon(true).stream().forEach(user -> res.append("\n- " + user.display()));
+
+        client.systemConsole.pushMainLine(res.toString());
+    }
+
+    public void displayUserPublicKey() {
+        StringBuffer res = new StringBuffer("Member's public key:");
+
+        carbon(true).stream().forEach(user -> {
+            res.append("\n" + Util.indent(0) + "- " + user.display() + ":");
+            res.append("\n" + Util.indent(1) + "- Public key:");
+            res.append("\n" + Util.indent(2) + "- Hex:");
+            res.append("\n" + Util.breakByteArrayToHexString(user.publicKey.getEncoded(), 80, ' '));
+            res.append("\n" + Util.indent(2) + "- Base64:");
+            res.append("\n" + Util.breakString(user.publicKeyString, 80));
+        });
 
         client.systemConsole.pushMainLine(res.toString());
     }
@@ -217,9 +236,9 @@ public class UserStack {
     }
 
     public void updateUserList() {
-        List<User> userStack = carbon();
+        List<User> userStack = carbon(false);
 
-        client.memberCatalog.setListData(list());
+        client.memberCatalog.setListData(list(true));
 
         client.memberCatalog.setActionEvent(0, null);
         client.memberCatalog.setActionEvent(1, null);

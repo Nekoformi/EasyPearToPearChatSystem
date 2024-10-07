@@ -154,7 +154,7 @@ public class Client {
             chatConsole.pushSubLine(getCurrentTimeDisplay() + "You have left the network.");
         };
 
-        if (userStack.carbon().size() >= 1) {
+        if (userStack.carbon(false).size() >= 1) {
             new Thread(() -> {
                 try {
                     userStack.removeMyProfile().join();
@@ -179,7 +179,7 @@ public class Client {
         } else {
             nodeStack.add(node);
 
-            if (userStack.carbon().size() <= 1) {
+            if (userStack.carbon(false).size() <= 1) {
                 new Thread(() -> {
                     synchronized (this) {
                         try {
@@ -321,7 +321,12 @@ public class Client {
             break;
         case "list":
         case "ls":
-            userStack.display();
+            userStack.displayUser();
+
+            break;
+        case "list-key":
+        case "lsk":
+            userStack.displayUserPublicKey();
 
             break;
         case "clear-chat":

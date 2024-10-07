@@ -163,6 +163,61 @@ public class Util {
         }
     }
 
+    public static String breakString(String text, int lineLength) {
+        int textLength = text.getBytes(CHARSET).length;
+
+        if (text != null && textLength > lineLength) {
+            StringBuffer res = new StringBuffer();
+            StringBuffer rec = new StringBuffer();
+
+            for (int i = 0; i < text.length(); i++) {
+                rec.append(text.charAt(i));
+
+                if (rec.toString().getBytes(CHARSET).length > lineLength) {
+                    rec.deleteCharAt(rec.length() - 1);
+                    res.append((res.length() != 0 ? "\n" : "") + rec.toString());
+
+                    rec = new StringBuffer("" + text.charAt(i));
+                }
+            }
+
+            res.append((res.length() != 0 ? "\n" : "") + rec.toString());
+
+            return res.toString();
+        } else {
+            return text;
+        }
+    }
+
+    public static String breakByteArrayToHexString(byte[] data, int lineLength, char separate) {
+        StringBuffer res = new StringBuffer();
+        StringBuffer rec = new StringBuffer();
+
+        int prevLength = 0;
+        String nextString;
+
+        for (int i = 0; i < data.length; i++) {
+            prevLength = rec.toString().getBytes(CHARSET).length;
+            nextString = String.format("%02x", data[i]);
+
+            rec.append(nextString);
+
+            if (prevLength + nextString.getBytes(CHARSET).length > lineLength) {
+                rec.setLength(prevLength);
+                res.append((res.length() != 0 ? "\n" : "") + rec.toString());
+
+                rec = new StringBuffer(nextString);
+            }
+
+            if (i != data.length - 1 && separate != '\0')
+                rec.append(separate);
+        }
+
+        res.append((res.length() != 0 ? "\n" : "") + rec.toString());
+
+        return res.toString();
+    }
+
     public static String[] specialSplitString(String data, String split, String boxStart, String boxEnd) {
         if (boxStart.length() != boxEnd.length() || data == null)
             return null;
