@@ -10,24 +10,27 @@ public class Message {
     public byte[] dataByte;
     public String[] dataString;
 
-    public static final int SIGN_DUPLICATE = 1;
-    public static final int SIGN_ALIGNMENT = 2;
-    public static final int SIGN_LEFT = 3;
+    public static final byte SIGN_DUPLICATE = 1;
+    public static final byte SIGN_ALIGNMENT = 2;
+    public static final byte SIGN_LEFT = 3;
 
-    public static final int SIGN_REQUEST_NODE_LIST = 4;
-    public static final int SIGN_RETURN_NODE_LIST = 5;
-    public static final int SIGN_REQUEST_USER_LIST = 6;
-    public static final int SIGN_RETURN_USER_LIST = 7;
-    public static final int SIGN_REQUEST_CLIENT_ADDRESS = 8;
-    public static final int SIGN_RETURN_CLIENT_ADDRESS = 9;
+    public static final byte SIGN_REQUEST_NODE_LIST = 4;
+    public static final byte SIGN_RETURN_NODE_LIST = 5;
+    public static final byte SIGN_REQUEST_USER_LIST = 6;
+    public static final byte SIGN_RETURN_USER_LIST = 7;
+    public static final byte SIGN_REQUEST_CLIENT_ADDRESS = 8;
+    public static final byte SIGN_RETURN_CLIENT_ADDRESS = 9;
 
-    public static final int SIGN_POST_USER_PROFILE = 10;
-    public static final int SIGN_UPDATE_USER_PROFILE = 11;
-    public static final int SIGN_REMOVE_USER_PROFILE = 12;
-    public static final int SIGN_RECEIVE_USER_PROFILE = 13;
+    public static final byte SIGN_POST_USER_PROFILE = 10;
+    public static final byte SIGN_UPDATE_USER_PROFILE = 11;
+    public static final byte SIGN_REMOVE_USER_PROFILE = 12;
+    public static final byte SIGN_RECEIVE_USER_PROFILE = 13;
 
-    public static final int SIGN_POST_CHAT_MESSAGE = 14;
-    public static final int SIGN_RECEIVE_CHAT_MESSAGE = 15;
+    public static final byte SIGN_POST_CHAT_MESSAGE = 14;
+    public static final byte SIGN_RECEIVE_CHAT_MESSAGE = 15;
+
+    public static final byte SIGN_POST_OUROBOROS_NODE_DATA = 16;
+    public static final byte SIGN_RECEIVE_OUROBOROS_NODE_DATA = 17;
 
     public static final String NAME_DUPLICATE = "dup";
     public static final String NAME_ALIGNMENT = "alg";
@@ -47,6 +50,12 @@ public class Message {
 
     public static final String NAME_POST_CHAT_MESSAGE = "pst-cm";
     public static final String NAME_RECEIVE_CHAT_MESSAGE = "rec-cm";
+
+    public static final String NAME_POST_OUROBOROS_NODE_DATA = "pst-on";
+    public static final String NAME_RECEIVE_OUROBOROS_NODE_DATA = "rec-on";
+
+    public static final byte MESSAGE_TYPE_STRING = (byte)0x00;
+    public static final byte MESSAGE_TYPE_BINARY = (byte)0x01;
 
     public Message() {
         console = null;
@@ -142,7 +151,7 @@ public class Message {
             return null;
         }
 
-        boolean isStringData = message[1] == 0x00;
+        boolean isStringData = message[1] == MESSAGE_TYPE_STRING;
 
         String id = Util.convertByteArrayToHexString(Arrays.copyOfRange(message, 2, 18));
 
@@ -257,10 +266,10 @@ public class Message {
 
         if (dataByte != null) {
             recData = dataByte;
-            recType = new byte[] { 0x01 };
+            recType = new byte[] { MESSAGE_TYPE_BINARY };
         } else {
             recData = Util.convertStringToByteArray(String.join(" ", dataString));
-            recType = new byte[] { 0x00 };
+            recType = new byte[] { MESSAGE_TYPE_STRING };
         }
 
         byte[] command = new byte[] { convertCommandNameToSign(this.command) };
@@ -323,7 +332,27 @@ public class Message {
         }
     }
 
-    String convertCommandSignToName(byte command) {
+    public void toLowerCase(int dataIndex) {
+        if (dataString == null || dataString.length < dataIndex + 1 || dataString[dataIndex] == null) {
+            pushErrorLine("Data (type: String) does not exist.", dataIndex);
+
+            return;
+        }
+
+        dataString[dataIndex] = dataString[dataIndex].toLowerCase();
+    }
+
+    public void toUpperCase(int dataIndex) {
+        if (dataString == null || dataString.length < dataIndex + 1 || dataString[dataIndex] == null) {
+            pushErrorLine("Data (type: String) does not exist.", dataIndex);
+
+            return;
+        }
+
+        dataString[dataIndex] = dataString[dataIndex].toUpperCase();
+    }
+
+    public static String convertCommandSignToName(byte command) {
         switch (Byte.toUnsignedInt(command)) {
         case SIGN_DUPLICATE:
             return NAME_DUPLICATE;
@@ -355,12 +384,16 @@ public class Message {
             return NAME_POST_CHAT_MESSAGE;
         case SIGN_RECEIVE_CHAT_MESSAGE:
             return NAME_RECEIVE_CHAT_MESSAGE;
+        case SIGN_POST_OUROBOROS_NODE_DATA:
+            return NAME_POST_OUROBOROS_NODE_DATA;
+        case SIGN_RECEIVE_OUROBOROS_NODE_DATA:
+            return NAME_RECEIVE_OUROBOROS_NODE_DATA;
         default:
             return null;
         }
     }
 
-    byte convertCommandNameToSign(String command) {
+    public static byte convertCommandNameToSign(String command) {
         switch (command) {
         case NAME_DUPLICATE:
             return SIGN_DUPLICATE;
@@ -392,6 +425,10 @@ public class Message {
             return SIGN_POST_CHAT_MESSAGE;
         case NAME_RECEIVE_CHAT_MESSAGE:
             return SIGN_RECEIVE_CHAT_MESSAGE;
+        case NAME_POST_OUROBOROS_NODE_DATA:
+            return SIGN_POST_OUROBOROS_NODE_DATA;
+        case NAME_RECEIVE_OUROBOROS_NODE_DATA:
+            return SIGN_RECEIVE_OUROBOROS_NODE_DATA;
         default:
             return 0;
         }

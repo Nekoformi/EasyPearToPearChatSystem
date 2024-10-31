@@ -7,6 +7,7 @@
 - Add command: "cll | clear-log"
 - Add command: "ls | list"
 - Add command: "lsk | list-key"
+- Add feature: Ouroboros Node Network
 
 ## E=CS 1.1
 

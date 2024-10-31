@@ -24,6 +24,14 @@ public class TaskStack {
         return task;
     }
 
+    public Task run(Task task, int waitingTime) {
+        taskStack.add(task);
+
+        task.waitAndStart(waitingTime);
+
+        return task;
+    }
+
     public Task get(String id) {
         return taskStack.stream().filter(task -> task.work.id.equals(id)).findFirst().orElse(null);
     }

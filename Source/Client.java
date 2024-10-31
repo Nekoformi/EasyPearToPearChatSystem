@@ -2,6 +2,8 @@ package Source;
 
 import Source.Stacks.Node;
 import Source.Stacks.NodeStack;
+import Source.Stacks.OuroborosNode;
+import Source.Stacks.OuroborosNodeStack;
 import Source.Stacks.Task;
 import Source.Stacks.TaskStack;
 import Source.Stacks.User;
@@ -31,6 +33,7 @@ public class Client {
     public UserStack userStack = new UserStack(this);
     public NodeStack nodeStack = new NodeStack(this);
     public TaskStack taskStack = new TaskStack(this);
+    public OuroborosNodeStack ouroborosNodeStack = new OuroborosNodeStack(this);
 
     public NodeListener nodeListener;
 
@@ -359,6 +362,113 @@ public class Client {
         case "disconnect":
             if (message.check(0, Util.TYPE_USER_ID))
                 disconnectNode(message.getStringData(0).substring(1), false);
+
+            break;
+        case "create-on":
+        case "con": {
+            int dataLength = message.getStringData().length;
+
+            switch (dataLength) {
+            case 1:
+                if (message.check(0, Util.TYPE_STRING))
+                    ouroborosNodeStack.add(message.getStringData(0));
+
+                break;
+            case 2:
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_INTEGER))
+                    ouroborosNodeStack.add(message.getStringData(0).substring(1), Integer.parseInt(message.getStringData(1)));
+
+                break;
+            default:
+                systemConsole.pushErrorLine("Invalid command received: Command \"" + message.command + "\" is written incorrectly.");
+
+                break;
+            }
+        }
+            break;
+        case "edit-on":
+        case "eon": {
+            int dataLength = message.getStringData().length;
+
+            switch (dataLength) {
+            case 2:
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID)) {
+                    String targetMapUserId = message.getStringData(0).substring(1);
+                    String rejectNodeUserId = message.getStringData(1).substring(1);
+
+                    ouroborosNodeStack.rejectNode(targetMapUserId, rejectNodeUserId);
+                }
+
+                break;
+            case 3:
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID) && message.check(2, Util.TYPE_USER_ID)) {
+                    String targetMapUserId = message.getStringData(0).substring(1);
+                    String targetNodeUserId = message.getStringData(1).substring(1);
+                    String replaceNodeUserId = message.getStringData(2).substring(1);
+
+                    ouroborosNodeStack.replaceNode(targetMapUserId, targetNodeUserId, replaceNodeUserId);
+                }
+
+                break;
+            case 4:
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID) && message.check(2, Util.TYPE_USER_ID)
+                        && message.check(3, Util.TYPE_ONN_FLAG)) {
+                    String targetMapUserId = message.getStringData(0).substring(1);
+                    String connectNodeUserId = message.getStringData(1).substring(1);
+                    String addNodeUserId = message.getStringData(2).substring(1);
+                    String addNodeFlag = message.getStringData(3);
+
+                    ouroborosNodeStack.addNode(targetMapUserId, connectNodeUserId, addNodeUserId, addNodeFlag);
+                }
+
+                break;
+            case 5:
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID) && message.check(2, Util.TYPE_USER_ID)
+                        && message.check(3, Util.TYPE_USER_ID) && message.check(4, Util.TYPE_ONN_FLAG)) {
+                    String targetMapUserId = message.getStringData(0).substring(1);
+                    String connectBeforeNodeUserId = message.getStringData(1).substring(1);
+                    String connectAfterNodeUserId = message.getStringData(2).substring(1);
+                    String insertNodeUserId = message.getStringData(3).substring(1);
+                    String insertNodeFlag = message.getStringData(4);
+
+                    ouroborosNodeStack.insertNode(targetMapUserId, connectBeforeNodeUserId, connectAfterNodeUserId, insertNodeUserId, insertNodeFlag);
+                }
+
+                break;
+            default:
+                systemConsole.pushErrorLine("Invalid command received: Command \"" + message.command + "\" is written incorrectly.");
+
+                break;
+            }
+        }
+            break;
+        case "show-on":
+        case "son":
+            if (message.check(0, Util.TYPE_USER_ID))
+                ouroborosNodeStack.display(message.getStringData(0).substring(1));
+
+            break;
+        case "remove-on":
+        case "ron":
+            if (message.check(0, Util.TYPE_USER_ID))
+                ouroborosNodeStack.remove(message.getStringData(0).substring(1));
+
+            break;
+        case "message-on":
+        case "mon":
+            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING)) {
+                OuroborosNode rec = ouroborosNodeStack.postTextData(message.getStringData(0).substring(1), message.join(1));
+
+                if (rec == null)
+                    break;
+
+                String postUserName = rec.myself.name;
+                String sendUserName = rec.target.name;
+                String chatMessage = message.join(1).replaceAll("\\\\n", "\n");
+
+                chatConsole.pushMainLine(
+                        Client.getCurrentTimeDisplay() + postUserName + " → " + sendUserName + " [Private Message / Send with ONN]:\n" + chatMessage);
+            }
 
             break;
         default:

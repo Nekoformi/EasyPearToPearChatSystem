@@ -7,6 +7,7 @@ import Source.Tasks.GetClientAddress;
 import Source.Tasks.GetNodeList;
 import Source.Tasks.GetUserList;
 import Source.Tasks.PostChatMessage;
+import Source.Tasks.PostOuroborosNodeData;
 import Source.Tasks.PostUserProfile;
 import Source.Tasks.RemoveUserProfile;
 import Source.Tasks.UpdateUserProfile;
@@ -309,6 +310,14 @@ public class Node {
             break;
         case Message.NAME_LEFT: // - | - | 1
             executeTask(message, 0, new DisconnectClient()); // NULL
+
+            break;
+        case Message.NAME_POST_OUROBOROS_NODE_DATA: // 0 | 0 | 1
+            executeTask(message, 5, new PostOuroborosNodeData()); // TIMEOUT, USER ID, MESSAGE, TARGET USER ID, SECURE HASH
+
+            break;
+        case Message.NAME_RECEIVE_OUROBOROS_NODE_DATA: // - | - | 0
+            executeTask(message, 0, null); // NULL
 
             break;
         default:

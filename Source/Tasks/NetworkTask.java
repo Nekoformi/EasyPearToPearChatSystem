@@ -53,6 +53,8 @@ public class NetworkTask extends Task {
 
     @Override
     public synchronized void run() {
+        super.run();
+
         if (nodeStack.size() != 0 && !skipSend) {
             nodeStack.forEach(node -> {
                 nodeStore.add(new NodeStore(node));

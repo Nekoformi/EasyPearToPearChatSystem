@@ -77,6 +77,24 @@ Hello world!
 | `cll` `clear-log` | `<VOID>` | Clear log history. |
 | `connect` | `<USER ID>` | Connect the node. |
 | `disconnect` | `<USER ID>` | Disconnect the node. |
+| `con` `create-on` | (`<USER ID>` `<DUMMY NUM>`) \| (`<MAP STRUCTURE>`) | Create a map of the Ouroboros Node Network. |
+| `son` `show-on` | `<USER ID>` | Show a map of the Ouroboros Node Network. |
+| `ron` `remove-on` | `<USER ID>` | Remove a map of the Ouroboros Node Network from a string. |
+| `eon` `edit-on` | `<USER ID A>` `<USER ID B>` `<USER ID C>` `<USER ID D>` `<FLAG>` | Insert user D between user B and user C on user A's map. |
+| `eon` `edit-on` | `<USER ID A>` `<USER ID B>` `<USER ID C>` `<FLAG>` | Add user C after user B on user A's map. |
+| `eon` `edit-on` | `<USER ID A>` `<USER ID B>` `<USER ID C>` | Replace user C for user B on user A's map. |
+| `eon` `edit-on` | `<USER ID A>` `<USER ID B>` | Delete user B from user A's map. |
+| `mon` `message-on` | `<USER ID>` `<STRING ...>` | Send chat message to target using the Ouroboros Node Network. |
+
+| Flag | Name | Detail |
+| --- | --- | --- |
+| `DUM` | Dummy | A node that routes message. |
+| `PST` | Post | The sending node (myself). |
+| `REC` | Receive | The receiving node (target). |
+| `FIN` | Finish | The receiving node accepts the termination of communication (cycles). |
+| `DEL` | Delete | A node that deletes message. |
+| `WAI` | Wait | A dummy node that sends a message after a random period of time. |
+| `REP` | Repeat | A dummy node that re-sends a message after a random period of time. |
 
 ## Bonus
 

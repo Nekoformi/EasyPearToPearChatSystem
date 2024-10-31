@@ -170,7 +170,16 @@ public class UserStack {
     }
 
     public User get(String id) {
-        return userStack.stream().filter(user -> user.id.equals(id)).findFirst().orElse(null);
+        if (myProfile.id.equals(id)) {
+            return myProfile;
+        } else {
+            User res = userStack.stream().filter(user -> user.id.equals(id)).findFirst().orElse(null);
+
+            // if (res == null)
+            // client.systemConsole.pushErrorLine("The specified user (@" + id + ") does not exist.");
+
+            return res;
+        }
     }
 
     public List<User> carbon(boolean includeMyProfile) {

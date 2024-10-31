@@ -2,6 +2,7 @@ package Source.Utils;
 
 import java.io.*;
 import java.net.*;
+import java.nio.*;
 import java.nio.charset.*;
 import java.security.*;
 import java.security.interfaces.*;
@@ -38,6 +39,7 @@ public class Util {
     public static final String COMMAND_REGEX = "/[a-z-]+";
     public static final String TASK_ID_REGEX = "#[0-9a-f]{32}";
     public static final String USER_ID_REGEX = "@[0-9a-f]{32}";
+    public static final String ONN_FLAG_REGEX = "(SYN|ACK|DUM|PST|REC|FIN|DEL|WAI|REP)";
 
     public static final int TYPE_STRING = 1;
     public static final int TYPE_INTEGER = 2;
@@ -50,6 +52,7 @@ public class Util {
     public static final int TYPE_COMMAND = 256;
     public static final int TYPE_TASK_ID = 512;
     public static final int TYPE_USER_ID = 1024;
+    public static final int TYPE_ONN_FLAG = 2048;
 
     // Message
 
@@ -89,6 +92,38 @@ public class Util {
 
     // Generate
 
+    public static int generateRandomInt(int max) {
+        SecureRandom random = new SecureRandom();
+
+        return generateRandomInt(random, max);
+    }
+
+    public static int generateRandomInt(SecureRandom random, int max) {
+        return random.nextInt(max);
+    }
+
+    public static int generateRandomInt(int min, int max) {
+        SecureRandom random = new SecureRandom();
+
+        return generateRandomInt(random, min, max);
+    }
+
+    public static int generateRandomInt(SecureRandom random, int min, int max) {
+        return min + random.nextInt(max - min);
+    }
+
+    public static <T> T popListItem(List<T> rec) {
+        return rec.remove(rec.size() - 1);
+    }
+
+    public static <T> List<T> createExpandableList(T firstItem) {
+        List<T> res = new ArrayList<T>();
+
+        res.add(firstItem);
+
+        return res;
+    }
+
     public static String generateNoiseHexString(int length) {
         return convertByteArrayToHexString(generateNoiseByte(length));
     }
@@ -120,6 +155,15 @@ public class Util {
         return res;
     }
 
+    public static String repeat(String text, int n) {
+        StringBuffer sb = new StringBuffer();
+
+        for (int i = 0; i < n; i++)
+            sb.append(text);
+
+        return sb.toString();
+    }
+
     public static String indent(int n) {
         StringBuffer sb = new StringBuffer();
 
@@ -138,6 +182,32 @@ public class Util {
         return res.toByteArray();
     }
 
+    public static <T> List<T> pickRandomArray(List<T> list, int n) {
+        if (list.size() < n)
+            return null;
+
+        SecureRandom random = new SecureRandom();
+
+        List<T> buf = new ArrayList<T>(list);
+        List<T> res = new ArrayList<T>(n);
+
+        for (int i = 0; i < n; i++) {
+            int bufLength = buf.size();
+            int pickIndex = random.nextInt(bufLength);
+            int lastIndex = bufLength - 1;
+
+            T pickItem = buf.get(pickIndex);
+            T lastItem = buf.remove(lastIndex);
+
+            res.add(pickItem);
+
+            if (pickIndex != lastIndex)
+                buf.set(pickIndex, lastItem);
+        }
+
+        return res;
+    }
+
     // Edit
 
     public static String omitString(String text, int byteLength, boolean displayDataLength) {
@@ -147,10 +217,12 @@ public class Util {
         if (text != null && textLength > byteLength) {
             StringBuffer sb = new StringBuffer();
 
+            int displayMaxLength = byteLength - (displayDataLength ? textLengthDigit + 5 : 3);
+
             for (int i = 0; i < text.length(); i++) {
                 sb.append(text.charAt(i));
 
-                if (sb.toString().getBytes(CHARSET).length > byteLength - (displayDataLength ? textLengthDigit + 5 : 3)) {
+                if (sb.toString().getBytes(CHARSET).length > displayMaxLength) {
                     sb.deleteCharAt(sb.length() - 1);
 
                     break;
@@ -160,6 +232,31 @@ public class Util {
             return sb.toString() + "..." + (displayDataLength ? "(" + String.valueOf(textLength) + ")" : "");
         } else {
             return text;
+        }
+    }
+
+    public static String omitByteArrayToHexString(byte[] data, int byteLength, boolean displayCharLength) {
+        int dataLength = data.length * 2;
+        int dataLengthDigit = getNumberDigit(dataLength);
+
+        if (data != null && dataLength + 2 > byteLength) {
+            StringBuffer sb = new StringBuffer();
+
+            int displayMaxLength = byteLength - (displayCharLength ? dataLengthDigit + 7 : 5);
+
+            for (int i = 0; i < data.length; i++) {
+                sb.append(String.format("%02x", data[i]));
+
+                if (sb.toString().getBytes(CHARSET).length > displayMaxLength) {
+                    sb.setLength(displayMaxLength);
+
+                    break;
+                }
+            }
+
+            return "0x" + sb.toString() + "..." + (displayCharLength ? "[" + String.valueOf(data.length) + "]" : "");
+        } else {
+            return "0x" + convertByteArrayToHexString(data);
         }
     }
 
@@ -289,6 +386,14 @@ public class Util {
         return a <= b ? a : b;
     }
 
+    public static byte[] convertIntToByteArray(int value) {
+        return ByteBuffer.allocate(4).putInt(value).array();
+    }
+
+    public static int convertByteArrayToInt(byte[] value) {
+        return ByteBuffer.wrap(value).getInt();
+    }
+
     public static String convertByteArrayToString(byte[] data) {
         return new String(data, CHARSET);
     }
@@ -396,6 +501,12 @@ public class Util {
                 return null;
             } else {
                 return "not user ID";
+            }
+        case TYPE_ONN_FLAG:
+            if (data.matches(ONN_FLAG_REGEX)) {
+                return null;
+            } else {
+                return "not ONN flag";
             }
         default:
             return "unknown type";
