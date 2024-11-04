@@ -6,10 +6,13 @@ import Source.Tasks.DisconnectClient;
 import Source.Tasks.GetClientAddress;
 import Source.Tasks.GetNodeList;
 import Source.Tasks.GetUserList;
+import Source.Tasks.PostChatFile;
 import Source.Tasks.PostChatMessage;
 import Source.Tasks.PostOuroborosNodeData;
 import Source.Tasks.PostUserProfile;
 import Source.Tasks.RemoveUserProfile;
+import Source.Tasks.RequestChatFile;
+import Source.Tasks.SendChatFile;
 import Source.Tasks.UpdateUserProfile;
 import Source.Utils.Message;
 import Source.Utils.Util;
@@ -187,7 +190,7 @@ public class Node {
                     byte[] buffer = new byte[1024];
                     int bufferLength;
 
-                    bufferLength = binaryReader.read(buffer);
+                    bufferLength = binaryReader.read(buffer, 0, buffer.length);
 
                     if (bufferLength == -1) {
                         done = true;
@@ -312,8 +315,24 @@ public class Node {
             executeTask(message, 0, new DisconnectClient()); // NULL
 
             break;
+        case Message.NAME_POST_CHAT_FILE: // 0 | 0 | 3
+            executeTask(message, 5, new PostChatFile()); // TIMEOUT, USER ID, FILE ID, FILE NAME, SECURE HASH
+
+            break;
+        case Message.NAME_REQUEST_CHAT_FILE: // 0 | 0 | 3
+            executeTask(message, 6, new RequestChatFile()); // TIMEOUT, USER ID, TARGET USER ID, TARGET FILE ID, PART NUMBER, SECURE HASH
+
+            break;
+        case Message.NAME_SEND_CHAT_FILE: // 0 | 0 | 3
+            executeTask(message, 0, new SendChatFile()); // DATA
+
+            break;
+        case Message.NAME_RECEIVE_CHAT_FILE: // - | - | 0
+            executeTask(message, 0, null); // NULL
+
+            break;
         case Message.NAME_POST_OUROBOROS_NODE_DATA: // 0 | 0 | 1
-            executeTask(message, 5, new PostOuroborosNodeData()); // TIMEOUT, USER ID, MESSAGE, TARGET USER ID, SECURE HASH
+            executeTask(message, 0, new PostOuroborosNodeData()); // DATA
 
             break;
         case Message.NAME_RECEIVE_OUROBOROS_NODE_DATA: // - | - | 0

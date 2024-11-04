@@ -475,7 +475,7 @@ public class OuroborosNodeStack {
 
                 client.systemConsole.pushMainLine("Send ONN data to ... " + item.user.display());
 
-                res.add(sendData(item.userId, rem));
+                res.add(sendDataFromBinary(item.userId, rem));
             }
         }
             break;
@@ -489,7 +489,7 @@ public class OuroborosNodeStack {
 
                 client.systemConsole.pushMainLine("Send ONN data to ... " + item.user.display());
 
-                res.add(sendData(item.userId, rem));
+                res.add(sendDataFromBinary(item.userId, rem));
             }
         }
             break;
@@ -503,7 +503,7 @@ public class OuroborosNodeStack {
 
                 client.systemConsole.pushMainLine("Send ONN data to ... " + item.user.display());
 
-                res.add(sendData(item.userId, rem, Util.generateRandomInt(WAITING_TIME_MIN, WAITING_TIME_MAX)));
+                res.add(sendDataFromBinary(item.userId, rem, Util.generateRandomInt(WAITING_TIME_MIN, WAITING_TIME_MAX)));
             }
         }
             break;
@@ -517,8 +517,8 @@ public class OuroborosNodeStack {
 
                 client.systemConsole.pushMainLine("Send ONN data to ... " + item.user.display());
 
-                res.add(sendData(item.userId, rem));
-                res.add(sendData(item.userId, rem, Util.generateRandomInt(WAITING_TIME_MIN, WAITING_TIME_MAX)));
+                res.add(sendDataFromBinary(item.userId, rem));
+                res.add(sendDataFromBinary(item.userId, rem, Util.generateRandomInt(WAITING_TIME_MIN, WAITING_TIME_MAX)));
             }
         }
             break;
@@ -555,7 +555,7 @@ public class OuroborosNodeStack {
 
                 client.systemConsole.pushMainLine("Send ONN data to ... " + item.user.display());
 
-                res.add(sendData(item.userId, rem));
+                res.add(sendDataFromBinary(item.userId, rem));
             }
         }
             break;
@@ -621,26 +621,43 @@ public class OuroborosNodeStack {
         return res;
     }
 
-    public Task sendData(String targetUserId, byte[] data) {
-        String userId = "@" + client.userStack.myProfile.id;
-        String content = Util.convertByteArrayToBase64(data);
-        String secureHash = client.generateSecureHashWithMyProfile(content);
-
-        targetUserId = "@" + targetUserId;
-
-        Message message = new Message(client.systemConsole, "pst-on", "+", Client.TIMEOUT, userId, content, targetUserId, secureHash);
-
-        return client.taskStack.run(new PostOuroborosNodeData().set(client, null, message));
+    public Task sendDataFromString(String targetUserId, byte[] data) {
+        return sendDataFromString(targetUserId, data, -1);
     }
 
-    public Task sendData(String targetUserId, byte[] data, int delay) {
+    public Task sendDataFromString(String targetUserId, byte[] data, int delay) {
         String userId = "@" + client.userStack.myProfile.id;
         String content = Util.convertByteArrayToBase64(data);
         String secureHash = client.generateSecureHashWithMyProfile(content);
 
         targetUserId = "@" + targetUserId;
 
-        Message message = new Message(client.systemConsole, "pst-on", "+", Client.TIMEOUT, userId, content, targetUserId, secureHash);
+        Message message = new Message(client.systemConsole, "pst-on", "+", Client.TIMEOUT, userId, targetUserId, content, secureHash);
+
+        return client.taskStack.run(new PostOuroborosNodeData().set(client, null, message), delay);
+    }
+
+    public Task sendDataFromBinary(String targetUserId, byte[] data) {
+        return sendDataFromBinary(targetUserId, data, -1);
+    }
+
+    public Task sendDataFromBinary(String targetUserId, byte[] data, int delay) {
+        byte[] _timeout = Util.convertIntToByteArray(Integer.parseInt(Client.TIMEOUT));
+        byte[] _userId = Util.convertHexStringToByteArray(client.userStack.myProfile.id);
+        byte[] _targetUserId = Util.convertHexStringToByteArray(targetUserId);
+        byte[] _content = data;
+        byte[] _contentSize = Util.convertIntToByteArray(_content.length);
+        byte[] _secureHash = client.generateSecureHashWithMyProfile(_content);
+        byte[] _secureHashSize = Util.convertIntToByteArray(_secureHash.length);
+
+        Message message = new Message(client.systemConsole, "pst-on", "+",
+                Util.concatByteArray(_timeout, _userId, _targetUserId, _contentSize, _content, _secureHashSize, _secureHash));
+
+        // message = {
+        // ### timeout[4], userId[16], targetUserId[16],
+        // ### contentSize[4], content[...],
+        // ### secureHashSize[4], secureHash[...]
+        // };
 
         return client.taskStack.run(new PostOuroborosNodeData().set(client, null, message), delay);
     }

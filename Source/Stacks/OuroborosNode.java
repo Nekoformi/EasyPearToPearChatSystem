@@ -14,7 +14,7 @@ public class OuroborosNode {
     public static final boolean DISPLAY_ONN_PROCESS = true;
     public static final boolean DISPLAY_ONN_PROCESS_FULL_CONTENT = false;
 
-    public static final int MAX_MESSAGE_DATA_SIZE = 65536;
+    public static final int MAX_MESSAGE_DATA_SIZE = 8192;
     public static final int MIN_DUMMIES_NUM = 2;
 
     public static final byte FLAG_BYTE_NULL = 0;
@@ -1642,17 +1642,17 @@ public class OuroborosNode {
     }
 
     static byte[][] decodeOuroborosDataLayer4A(Client client, byte[] data) throws Exception {
-        byte[] _userId = getNextDataOnSize(data, 16);
-        data = clearByteArrayOnSize(data, 16);
+        byte[] _userId = Util.getNextDataOnSize(data, 16);
+        data = Util.clearByteArrayOnSize(data, 16);
 
-        byte[] _userPublicKey = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _userPublicKey = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
-        byte[] _encryptedCommonKey = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _encryptedCommonKey = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
-        byte[] _encryptedMessage = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _encryptedMessage = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
         if (_userId == null || _userPublicKey == null || _encryptedCommonKey == null || _encryptedMessage == null)
             return null;
@@ -1673,17 +1673,17 @@ public class OuroborosNode {
     }
 
     static byte[][] decodeOuroborosDataLayer4B(Client client, byte[] data, byte type) throws Exception {
-        byte[] _postUserId = getNextDataOnSize(data, 16);
-        data = clearByteArrayOnSize(data, 16);
+        byte[] _postUserId = Util.getNextDataOnSize(data, 16);
+        data = Util.clearByteArrayOnSize(data, 16);
 
-        byte[] _postUserPublicKey = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _postUserPublicKey = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
-        byte[] _map = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _map = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
-        byte[] _message = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _message = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
         if (_map == null || _message == null)
             return null;
@@ -1709,20 +1709,20 @@ public class OuroborosNode {
     }
 
     static byte[][] decodeOuroborosDataLayer3(Client client, byte[] data) throws Exception {
-        byte[] _messageId = getNextDataOnSize(data, 16);
-        data = clearByteArrayOnSize(data, 16);
+        byte[] _messageId = Util.getNextDataOnSize(data, 16);
+        data = Util.clearByteArrayOnSize(data, 16);
 
-        byte[] _messageSize = getNextDataOnSize(data, 4);
-        data = clearByteArrayOnSize(data, 4);
+        byte[] _messageSize = Util.getNextDataOnSize(data, 4);
+        data = Util.clearByteArrayOnSize(data, 4);
 
-        byte[] _flag = getNextDataOnSize(data, 1);
-        data = clearByteArrayOnSize(data, 1);
+        byte[] _flag = Util.getNextDataOnSize(data, 1);
+        data = Util.clearByteArrayOnSize(data, 1);
 
-        byte[] _type = getNextDataOnSize(data, 1);
-        data = clearByteArrayOnSize(data, 1);
+        byte[] _type = Util.getNextDataOnSize(data, 1);
+        data = Util.clearByteArrayOnSize(data, 1);
 
-        byte[] _noise = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _noise = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
         if (_messageId == null || _messageSize == null || _flag == null || _type == null || _noise == null)
             return null;
@@ -1749,14 +1749,14 @@ public class OuroborosNode {
             res.add(_type);
 
             while (data != null) {
-                byte[] rec = getNextDataOnSize(data);
+                byte[] rec = Util.getNextDataOnSize(data);
 
                 if (rec == null)
                     break;
 
                 res.add(rec);
 
-                data = clearByteArrayOnSize(data);
+                data = Util.clearByteArrayOnSize(data);
 
                 if (data.length == 0)
                     break;
@@ -1778,14 +1778,14 @@ public class OuroborosNode {
     }
 
     static byte[] decodeOuroborosDataLayer2(Client client, byte[] data) throws Exception {
-        byte[] _encryptedCommonKey = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _encryptedCommonKey = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
-        byte[] _encryptedMessage = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _encryptedMessage = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
-        byte[] _noise = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _noise = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
         if (data.length != 0 || _encryptedCommonKey == null || _encryptedMessage == null || _noise == null)
             return null;
@@ -1813,11 +1813,11 @@ public class OuroborosNode {
     }
 
     static byte[] decodeOuroborosDataLayer1(Client client, byte[] data) throws Exception {
-        byte[] _encryptedCommonKey = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _encryptedCommonKey = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
-        byte[] _encryptedContent = getNextDataOnSize(data);
-        data = clearByteArrayOnSize(data);
+        byte[] _encryptedContent = Util.getNextDataOnSize(data);
+        data = Util.clearByteArrayOnSize(data);
 
         if (data.length != 0 || _encryptedCommonKey == null || _encryptedContent == null)
             return null;
@@ -1841,46 +1841,6 @@ public class OuroborosNode {
         }
 
         return content;
-    }
-
-    static byte[] getNextDataOnSize(byte[] rec, int size) {
-        if (rec == null || rec.length <= 0)
-            return null;
-
-        if (size > 0 && rec.length >= size) {
-            return Arrays.copyOf(rec, size);
-        } else {
-            return null;
-        }
-    }
-
-    static byte[] getNextDataOnSize(byte[] rec) {
-        if (rec == null || rec.length <= 0)
-            return null;
-
-        int size = Util.convertByteArrayToInt(Arrays.copyOfRange(rec, 0, 4));
-
-        if (size > 0 && rec.length >= 4 + size) {
-            return Arrays.copyOfRange(rec, 4, 4 + size);
-        } else {
-            return null;
-        }
-    }
-
-    static byte[] clearByteArrayOnSize(byte[] rec, int size) {
-        if (rec == null || rec.length <= 0)
-            return null;
-
-        return Arrays.copyOfRange(rec, size, rec.length);
-    }
-
-    static byte[] clearByteArrayOnSize(byte[] rec) {
-        if (rec == null || rec.length <= 0)
-            return null;
-
-        int size = Util.convertByteArrayToInt(Arrays.copyOfRange(rec, 0, 4));
-
-        return Arrays.copyOfRange(rec, 4 + size, rec.length);
     }
 
     static void appendProcessLogData(StringBuffer sb, String name, int data) {

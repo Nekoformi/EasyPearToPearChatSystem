@@ -1,13 +1,17 @@
 # Change log
 
+## E=CS 1.3
+
+- Add feature: Send binary data
+
 ## E=CS 1.2
 
-- Fix access method for data in JAR files
-- Add command: "clc | clear-chat"
-- Add command: "cll | clear-log"
+- Add feature: Ouroboros Node Network
 - Add command: "ls | list"
 - Add command: "lsk | list-key"
-- Add feature: Ouroboros Node Network
+- Add command: "clc | clear-chat"
+- Add command: "cll | clear-log"
+- Fix access method for data in JAR files
 
 ## E=CS 1.1
 

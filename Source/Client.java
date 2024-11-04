@@ -1,5 +1,6 @@
 package Source;
 
+import Source.Stacks.FileStack;
 import Source.Stacks.Node;
 import Source.Stacks.NodeStack;
 import Source.Stacks.OuroborosNode;
@@ -33,6 +34,7 @@ public class Client {
     public UserStack userStack = new UserStack(this);
     public NodeStack nodeStack = new NodeStack(this);
     public TaskStack taskStack = new TaskStack(this);
+    public FileStack fileStack = new FileStack(this);
     public OuroborosNodeStack ouroborosNodeStack = new OuroborosNodeStack(this);
 
     public NodeListener nodeListener;
@@ -51,6 +53,7 @@ public class Client {
     public boolean useSSL = false;
 
     public static String TIMEOUT = "10000";
+    public static String DOWNLOAD_PATH = "./";
 
     public Client() {}
 
@@ -317,6 +320,24 @@ public class Client {
                 postChatMessage(message.join(0));
 
             break;
+        case "file":
+        case "f":
+            if (message.check(0, Util.TYPE_STRING))
+                fileStack.addFileStore(message.join(0));
+
+            break;
+        case "file-request":
+        case "fr":
+            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_FILE_ID))
+                fileStack.request(message.getStringData(0).substring(1), message.getStringData(1).substring(1));
+
+            break;
+        case "file-free":
+        case "ff":
+            if (message.check(0, Util.TYPE_FILE_ID))
+                fileStack.free(message.getStringData(0).substring(1));
+
+            break;
         case "update":
         case "u":
             userStack.getUserList();
@@ -490,8 +511,24 @@ public class Client {
         return Util.convertByteArrayToBase64(Util.encryptByteArrayWithRsaPublicKey(Util.getSha256(data), user.publicKey));
     }
 
+    public byte[] generateSecureHashWithUserProfile(String id, byte[] data) {
+        User user = userStack.get(id);
+
+        if (user == null) {
+            systemConsole.pushErrorLine("Invalid data received: User (ID and public key) does not exist. Please get the user list with /update");
+
+            return null;
+        }
+
+        return Util.encryptByteArrayWithRsaPublicKey(Util.getSha256(data), user.publicKey);
+    }
+
     public String generateSecureHashWithMyProfile(String data) {
         return Util.convertByteArrayToBase64(Util.encryptByteArrayWithRsaPrivateKey(Util.getSha256(data), userStack.myProfile.privateKey));
+    }
+
+    public byte[] generateSecureHashWithMyProfile(byte[] data) {
+        return Util.encryptByteArrayWithRsaPrivateKey(Util.getSha256(data), userStack.myProfile.privateKey);
     }
 
     public boolean checkDataWithUserProfile(String id, String data, String secureHash) {
@@ -515,9 +552,43 @@ public class Client {
         }
     }
 
+    public boolean checkDataWithUserProfile(String id, byte[] data, byte[] secureHash) {
+        User user = userStack.get(id);
+
+        if (user == null) {
+            systemConsole.pushErrorLine("Invalid data received: User (ID and public key) does not exist. Please get the user list with /update");
+
+            return false;
+        }
+
+        byte[] hashA = Util.getSha256(data);
+        byte[] hashB = Util.decryptByteArrayWithRsaPublicKey(secureHash, user.publicKey);
+
+        if (Arrays.equals(hashA, hashB)) {
+            return true;
+        } else {
+            systemConsole.pushErrorLine("Invalid data received: The hashes do not match. The data may be corrupted or tampered with.");
+
+            return false;
+        }
+    }
+
     public boolean checkDataWithMyProfile(String data, String secureHash) {
         byte[] hashA = Util.getSha256(data);
         byte[] hashB = Util.decryptByteArrayWithRsaPrivateKey(Util.convertBase64ToByteArray(secureHash), userStack.myProfile.privateKey);
+
+        if (Arrays.equals(hashA, hashB)) {
+            return true;
+        } else {
+            systemConsole.pushErrorLine("Invalid data received: The hashes do not match. The data may be corrupted or tampered with.");
+
+            return false;
+        }
+    }
+
+    public boolean checkDataWithMyProfile(byte[] data, byte[] secureHash) {
+        byte[] hashA = Util.getSha256(data);
+        byte[] hashB = Util.decryptByteArrayWithRsaPrivateKey(secureHash, userStack.myProfile.privateKey);
 
         if (Arrays.equals(hashA, hashB)) {
             return true;

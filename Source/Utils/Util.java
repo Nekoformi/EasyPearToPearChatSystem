@@ -13,6 +13,7 @@ import java.util.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import javax.net.ssl.*;
+import javax.swing.text.*;
 
 public class Util {
     public static final String MAGIC_WORD = "Every way holds mysteries to be explored! ... by Sara Kotova";
@@ -39,6 +40,7 @@ public class Util {
     public static final String COMMAND_REGEX = "/[a-z-]+";
     public static final String TASK_ID_REGEX = "#[0-9a-f]{32}";
     public static final String USER_ID_REGEX = "@[0-9a-f]{32}";
+    public static final String FILE_ID_REGEX = "#[0-9a-f]{32}";
     public static final String ONN_FLAG_REGEX = "(SYN|ACK|DUM|PST|REC|FIN|DEL|WAI|REP)";
 
     public static final int TYPE_STRING = 1;
@@ -52,7 +54,8 @@ public class Util {
     public static final int TYPE_COMMAND = 256;
     public static final int TYPE_TASK_ID = 512;
     public static final int TYPE_USER_ID = 1024;
-    public static final int TYPE_ONN_FLAG = 2048;
+    public static final int TYPE_FILE_ID = 2048;
+    public static final int TYPE_ONN_FLAG = 4096;
 
     // Message
 
@@ -364,6 +367,46 @@ public class Util {
         return res.toArray(new String[res.size()]);
     }
 
+    public static byte[] getNextDataOnSize(byte[] rec, int size) {
+        if (rec == null || rec.length <= 0)
+            return null;
+
+        if (size > 0 && rec.length >= size) {
+            return Arrays.copyOf(rec, size);
+        } else {
+            return null;
+        }
+    }
+
+    public static byte[] getNextDataOnSize(byte[] rec) {
+        if (rec == null || rec.length <= 0)
+            return null;
+
+        int size = Util.convertByteArrayToInt(Arrays.copyOfRange(rec, 0, 4));
+
+        if (size > 0 && rec.length >= 4 + size) {
+            return Arrays.copyOfRange(rec, 4, 4 + size);
+        } else {
+            return null;
+        }
+    }
+
+    public static byte[] clearByteArrayOnSize(byte[] rec, int size) {
+        if (rec == null || rec.length <= 0)
+            return null;
+
+        return Arrays.copyOfRange(rec, size, rec.length);
+    }
+
+    public static byte[] clearByteArrayOnSize(byte[] rec) {
+        if (rec == null || rec.length <= 0)
+            return null;
+
+        int size = Util.convertByteArrayToInt(Arrays.copyOfRange(rec, 0, 4));
+
+        return Arrays.copyOfRange(rec, 4 + size, rec.length);
+    }
+
     // Convert
 
     public static int getNumberDigit(int number) {
@@ -502,6 +545,12 @@ public class Util {
             } else {
                 return "not user ID";
             }
+        case TYPE_FILE_ID:
+            if (data.matches(FILE_ID_REGEX)) {
+                return null;
+            } else {
+                return "not file ID";
+            }
         case TYPE_ONN_FLAG:
             if (data.matches(ONN_FLAG_REGEX)) {
                 return null;
@@ -552,10 +601,14 @@ public class Util {
     }
 
     public static byte[] getSha256(String data) {
+        return getSha256(data.getBytes(CHARSET));
+    }
+
+    public static byte[] getSha256(byte[] data) {
         try {
             MessageDigest sha = MessageDigest.getInstance("SHA-256");
 
-            sha.update(data.getBytes(CHARSET));
+            sha.update(data);
 
             return sha.digest();
         } catch (Exception e) {
@@ -833,5 +886,57 @@ public class Util {
 
     public static SecretKey decryptBase64ToCommonKeyWithRsaPrivateKey(String data, RSAPrivateKey privateKey) {
         return decryptByteArrayToCommonKeyWithRsaPrivateKey(convertBase64ToByteArray(data), privateKey);
+    }
+
+    // Component
+
+    public static String cutText(JTextComponent component) {
+        int startPosition = component.getSelectionStart();
+        int endPosition = component.getSelectionEnd();
+
+        int selectionLength = endPosition - startPosition;
+
+        String text = component.getText();
+
+        if (selectionLength > 0) {
+            String textBefore = text.substring(0, startPosition);
+            String textAfter = text.substring(endPosition);
+
+            text = text.substring(startPosition, endPosition);
+
+            component.setText(textBefore + textAfter);
+            component.setCaretPosition(startPosition);
+        } else {
+            component.setText("");
+        }
+
+        return text;
+    }
+
+    public static String copyText(JTextComponent component) {
+        int startPosition = component.getSelectionStart();
+        int endPosition = component.getSelectionEnd();
+
+        int selectionLength = endPosition - startPosition;
+
+        String text = component.getText();
+
+        if (selectionLength > 0) {
+            return text.substring(startPosition, endPosition);
+        } else {
+            return text;
+        }
+    }
+
+    public static void pasteText(JTextComponent component, String text) {
+        int startPosition = component.getSelectionStart();
+        int endPosition = component.getSelectionEnd();
+
+        String textBuffer = component.getText();
+        String textBefore = textBuffer.substring(0, startPosition);
+        String textAfter = textBuffer.substring(endPosition);
+
+        component.setText(textBefore + text + textAfter);
+        component.setCaretPosition(textBefore.length() + text.length());
     }
 }

@@ -5,9 +5,9 @@ import Source.Stacks.Node;
 import Source.Utils.Message;
 import Source.Utils.Util;
 
-public class PostOuroborosNodeData extends NetworkTask {
+public class SendChatFile extends NetworkTask {
     @Override
-    public PostOuroborosNodeData set(Client client, Node node, Message work) {
+    public SendChatFile set(Client client, Node node, Message work) {
         super.set(client, node, work);
 
         byte[] data = work.getByteData().clone();
@@ -16,7 +16,7 @@ public class PostOuroborosNodeData extends NetworkTask {
         data = Util.clearByteArrayOnSize(data, 4);
         int timeout = Util.convertByteArrayToInt(_timeout);
 
-        setProperties(timeout, 10, "pst-on", "rec-on");
+        setProperties(timeout, 10, "snd-cf", "rec-cf");
 
         if (isOriginalTask())
             return this;
@@ -34,6 +34,14 @@ public class PostOuroborosNodeData extends NetworkTask {
 
         skipSend = true;
 
+        byte[] _targetFileId = Util.getNextDataOnSize(data, 16);
+        data = Util.clearByteArrayOnSize(data, 16);
+        String targetFileId = Util.convertByteArrayToHexString(_targetFileId);
+
+        byte[] _partNo = Util.getNextDataOnSize(data, 4);
+        data = Util.clearByteArrayOnSize(data, 4);
+        int partNo = Util.convertByteArrayToInt(_partNo);
+
         byte[] _content = Util.getNextDataOnSize(data);
         // byte[] _contentSize = Util.convertIntToByteArray(_content.length);
         data = Util.clearByteArrayOnSize(data);
@@ -42,10 +50,10 @@ public class PostOuroborosNodeData extends NetworkTask {
         // byte[] _secureHashSize = Util.convertIntToByteArray(_secureHash.length);
         data = Util.clearByteArrayOnSize(data);
 
-        if (!client.checkDataWithUserProfile(userId, _content, _secureHash))
+        if (!client.checkDataWithUserProfile(userId, Util.concatByteArray(_targetUserId, _targetFileId, _partNo, _content), _secureHash))
             return this;
 
-        client.ouroborosNodeStack.processData(_content, false);
+        client.fileStack.receive(userId, targetFileId, partNo, _content);
 
         return this;
     }

@@ -3,6 +3,7 @@ package Source.Utils;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.text.*;
+import javax.swing.text.html.*;
 
 public class Console {
     StringBuffer stringBuffer = new StringBuffer();
@@ -124,17 +125,31 @@ public class Console {
     }
 
     void pushLineToTextPane(String text, Color color) {
-        SimpleAttributeSet attribute = new SimpleAttributeSet();
-
-        attribute.addAttribute(StyleConstants.Foreground, color);
-
         try {
-            document.insertString(document.getLength(), (document.getLength() == 0 ? "" : "\n") + text, attribute);
+            document.insertString(document.getLength(), (document.getLength() == 0 ? "" : "\n") + text, createColorTextAttribute(color));
         } catch (BadLocationException e) {
             e.printStackTrace();
         }
 
         updateTextPane();
+    }
+
+    SimpleAttributeSet createColorTextAttribute(Color color) {
+        SimpleAttributeSet attribute = new SimpleAttributeSet();
+
+        attribute.addAttribute(StyleConstants.Foreground, color);
+
+        return attribute;
+    }
+
+    SimpleAttributeSet createHyperLinkAttribute(String url, Color color) {
+        SimpleAttributeSet attribute = new SimpleAttributeSet();
+
+        attribute.addAttribute(HTML.Attribute.HREF, url);
+        attribute.addAttribute(StyleConstants.Underline, true);
+        attribute.addAttribute(StyleConstants.Foreground, color);
+
+        return attribute;
     }
 
     void clearAllLineToTextArea() {
@@ -158,6 +173,10 @@ public class Console {
 
         if (DEBUG_LOG)
             System.out.println(getCurrentTimeDisplay() + " " + Util.TERMINAL_GREEN + text + Util.TERMINAL_END);
+    }
+
+    public synchronized void pushMainLine(String text, String[] commandLabel, String[] commandContent) {
+        pushActionLine(text, new Color(128, 255, 128), Util.TERMINAL_GREEN, commandLabel, commandContent);
     }
 
     public synchronized void pushSubLine(String text) {
@@ -191,6 +210,42 @@ public class Console {
 
         if (DEBUG_LOG)
             System.err.println(getCurrentTimeDisplay() + " " + Util.TERMINAL_RED + text + Util.TERMINAL_END);
+    }
+
+    public synchronized void pushActionLine(String text, Color color, String terminalColor, String[] commandLabel, String[] commandContent) {
+        String[] textArray = text.split("\\$\\$\\$", -1);
+        StringBuffer textPlain = new StringBuffer(textArray[0]);
+
+        if (commandLabel.length != commandContent.length || commandLabel.length != textArray.length - 1)
+            return;
+
+        for (int i = 0; i < commandLabel.length; i++)
+            textPlain.append("[" + commandLabel[i] + "](" + commandContent[i] + ")" + textArray[i + 1]);
+
+        if (textArea != null)
+            SwingUtilities.invokeLater(() -> pushLineToTextArea(textPlain.toString()));
+
+        if (textPane != null) {
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    SimpleAttributeSet attribute = createColorTextAttribute(color);
+
+                    document.insertString(document.getLength(), (document.getLength() == 0 ? "" : "\n") + textArray[0], attribute);
+
+                    for (int i = 0; i < commandLabel.length; i++) {
+                        document.insertString(document.getLength(), commandLabel[i], createHyperLinkAttribute(commandContent[i], color));
+                        document.insertString(document.getLength(), textArray[i + 1], attribute);
+                    }
+                } catch (BadLocationException e) {
+                    e.printStackTrace();
+                }
+
+                updateTextPane();
+            });
+        }
+
+        if (DEBUG_LOG)
+            System.out.println(getCurrentTimeDisplay() + " " + terminalColor + textPlain.toString() + Util.TERMINAL_END);
     }
 
     public synchronized void clearAllLine() {

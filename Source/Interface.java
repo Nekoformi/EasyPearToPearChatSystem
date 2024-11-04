@@ -3,8 +3,12 @@ package Source;
 import Source.Utils.Util;
 
 import java.awt.*;
+import java.awt.datatransfer.*;
 import java.awt.event.*;
+import java.io.*;
 import javax.swing.*;
+import javax.swing.text.*;
+import javax.swing.text.html.*;
 
 public class Interface extends JFrame {
     ClassLoader classLoader = this.getClass().getClassLoader();
@@ -161,6 +165,40 @@ public class Interface extends JFrame {
             panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
             panel.add(textField);
             panel.add(button);
+
+            textField.setTransferHandler(new DropFileHandler(textField));
+        }
+
+        public void clear() {
+            textField.setText("");
+        }
+
+        public String get() {
+            return textField.getText();
+        }
+
+        public void set(String text) {
+            textField.setText(text);
+        }
+
+        public void add(String text) {
+            textField.setText(get() + text);
+        }
+
+        public String cut() {
+            return Util.cutText(textField);
+        }
+
+        public void insert(String text) {
+            Util.pasteText(textField, text);
+        }
+
+        public String pop() {
+            String res = get();
+
+            clear();
+
+            return res;
         }
     }
 
@@ -246,9 +284,7 @@ public class Interface extends JFrame {
 
         ActionListener runCommand = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                client.executeCommand(chatCommand.textField.getText());
-
-                chatCommand.textField.setText("");
+                client.executeCommand(chatCommand.pop());
             }
         };
 
@@ -260,6 +296,8 @@ public class Interface extends JFrame {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.add(chatDisplay.panel);
         panel.add(chatCommand.panel);
+
+        chatDisplay.textPane.addMouseListener(new HyperLinkController());
 
         return panel;
     }
@@ -286,5 +324,129 @@ public class Interface extends JFrame {
         panel.add(memberAction.panel);
 
         return panel;
+    }
+
+    class DropFileHandler extends TransferHandler {
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+        public DropFileHandler(JTextComponent component) {
+            super();
+
+            setKeyAction(component);
+        }
+
+        void setKeyAction(JTextComponent component) {
+            AbstractAction cutText = new AbstractAction() {
+                public void actionPerformed(ActionEvent e) {
+                    StringSelection stringSelection = new StringSelection(Util.cutText(component));
+
+                    clipboard.setContents(stringSelection, stringSelection);
+                }
+            };
+
+            AbstractAction copyText = new AbstractAction() {
+                public void actionPerformed(ActionEvent e) {
+                    StringSelection stringSelection = new StringSelection(Util.copyText(component));
+
+                    clipboard.setContents(stringSelection, stringSelection);
+                }
+            };
+
+            component.getInputMap().put(KeyStroke.getKeyStroke("ctrl X"), "cutText");
+            component.getActionMap().put("cutText", cutText);
+
+            component.getInputMap().put(KeyStroke.getKeyStroke("ctrl C"), "copyText");
+            component.getActionMap().put("copyText", copyText);
+        }
+
+        @Override
+        public boolean canImport(TransferSupport transferSupport) {
+            if (!transferSupport.isDrop()) {
+                // client.systemConsole.pushErrorLine("Invalid operation (D&D).");
+
+                // return false;
+            }
+
+            if (!transferSupport.isDataFlavorSupported(DataFlavor.stringFlavor) && !transferSupport.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                client.systemConsole.pushErrorLine("You can't D&D anything other than file(s) and text.");
+
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public boolean importData(TransferSupport transferSupport) {
+            if (!canImport(transferSupport))
+                return false;
+
+            Transferable transferable = transferSupport.getTransferable();
+
+            try {
+                if (transferSupport.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                    @SuppressWarnings("unchecked")
+                    java.util.List<File> rec = (java.util.List<File>)transferable.getTransferData(DataFlavor.javaFileListFlavor);
+
+                    chatCommand.insert(rec.get(0).getPath());
+                } else if (transferSupport.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                    String rec = transferable.getTransferData(DataFlavor.stringFlavor).toString();
+
+                    chatCommand.insert(rec);
+                }
+            } catch (UnsupportedFlavorException | IOException e) {
+                client.systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to load the file(s) or text."));
+            }
+
+            return true;
+        }
+    }
+
+    class HyperLinkController extends MouseAdapter {
+        public void mouseClicked(MouseEvent e) {
+            JTextPane textPane = (JTextPane)e.getSource();
+            int pos = textPane.viewToModel2D(new Point(e.getX(), e.getY()));
+
+            if (pos >= 0) {
+                Document document = textPane.getDocument();
+
+                if (document instanceof DefaultStyledDocument) {
+                    DefaultStyledDocument defaultStyledDocument = (DefaultStyledDocument)document;
+                    Element element = defaultStyledDocument.getCharacterElement(pos);
+                    AttributeSet attribute = element.getAttributes();
+                    String href = (String)attribute.getAttribute(HTML.Attribute.HREF);
+
+                    if (href != null)
+                        chatCommand.set(href);
+                }
+            }
+        }
+
+        public void mouseMoved(MouseEvent e) {
+            JTextPane textPane = (JTextPane)e.getSource();
+            int pos = textPane.viewToModel2D(new Point(e.getX(), e.getY()));
+
+            if (pos >= 0) {
+                Document document = textPane.getDocument();
+
+                if (document instanceof DefaultStyledDocument) {
+                    DefaultStyledDocument defaultStyledDocument = (DefaultStyledDocument)document;
+                    Element element = defaultStyledDocument.getCharacterElement(pos);
+                    AttributeSet attribute = element.getAttributes();
+                    String href = (String)attribute.getAttribute(HTML.Attribute.HREF);
+
+                    Cursor handCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+                    Cursor defaultCursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR);
+
+                    if (href != null) {
+                        if (getCursor() != handCursor)
+                            textPane.setCursor(handCursor);
+                    } else {
+                        if (getCursor() != defaultCursor)
+                            textPane.setCursor(defaultCursor);
+                    }
+                }
+            }
+        }
     }
 }

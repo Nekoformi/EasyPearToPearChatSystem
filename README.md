@@ -34,6 +34,7 @@ $ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -ssl -de
 | `m` `maximize` | `<VOID>` | false | Maximize the window. |
 | `n` `name` | `<STRING>` | "Anonymous" | Set the username. It can also be changed within the application. |
 | `t` `timeout` | `<UNSIGNED INTEGER>` | 10000 | Set the timeout (in milliseconds). |
+| `d` `download` | `<FOLDER PATH>` | ./ | Set the folder to save downloaded files. |
 | `create` | `<LISTENING PORT>` | - | Create a network at startup. |
 | `join` | `<ADDRESS>:<PORT>,<LISTENING PORT>` | - | Join the network at startup. |
 | `ssl` | `<VOID>` | false | Use SSL (Secure Socket Layer). However, note that the standard state has nonsense on users who know the protocol. |
@@ -69,6 +70,9 @@ Hello world!
 | `l` `leave` | `<VOID>` | Leave the network. |
 | `n` `name` | `<STRING ...>` | Set the username. |
 | `m` `message` | `<STRING ...>` | Send chat message. |
+| `f` `file` | `<FILE PATH ...>` | Upload the file. |
+| `fr` `file-request` | `<USER ID>` `<FILE ID>` | Download the file. |
+| `ff` `file-free` | `<FILE ID>` | Free the uploaded file (make it unavailable for download). |
 | `u` `update` | `<VOID>` | Update user list. |
 | `ls` `list` | `<VOID>` | Show user list. |
 | `lsk` `list-key` | `<VOID>` | Show the public keys of all users. |
@@ -130,6 +134,5 @@ keytool -import \
 ## Bucket list
 
 - Add function: to send private message.
-- Add function: to send binary data.
 - Add function: to enhance network security with password.
 - Add function: to add clients to blacklist.

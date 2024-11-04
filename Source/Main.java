@@ -8,7 +8,7 @@ import Source.Utils.Util;
 import com.formdev.flatlaf.FlatDarculaLaf;
 
 public class Main {
-    public static final String VERSION = "1.2";
+    public static final String VERSION = "1.3 (DEV)";
 
     public static void main(String[] argv) {
         String name = null;
@@ -85,6 +85,12 @@ public class Main {
                 case "timeout":
                     if (Argument.check(item, Util.TYPE_UNSIGNED_INTEGER))
                         Client.TIMEOUT = item.content;
+
+                    break;
+                case "d":
+                case "download":
+                    if (Argument.check(item, Util.TYPE_STRING))
+                        Client.DOWNLOAD_PATH = item.content;
 
                     break;
                 case "create":

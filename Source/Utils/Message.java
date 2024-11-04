@@ -29,8 +29,13 @@ public class Message {
     public static final byte SIGN_POST_CHAT_MESSAGE = 14;
     public static final byte SIGN_RECEIVE_CHAT_MESSAGE = 15;
 
-    public static final byte SIGN_POST_OUROBOROS_NODE_DATA = 16;
-    public static final byte SIGN_RECEIVE_OUROBOROS_NODE_DATA = 17;
+    public static final byte SIGN_POST_CHAT_FILE = 16;
+    public static final byte SIGN_REQUEST_CHAT_FILE = 17;
+    public static final byte SIGN_SEND_CHAT_FILE = 18;
+    public static final byte SIGN_RECEIVE_CHAT_FILE = 19;
+
+    public static final byte SIGN_POST_OUROBOROS_NODE_DATA = 20;
+    public static final byte SIGN_RECEIVE_OUROBOROS_NODE_DATA = 21;
 
     public static final String NAME_DUPLICATE = "dup";
     public static final String NAME_ALIGNMENT = "alg";
@@ -50,6 +55,11 @@ public class Message {
 
     public static final String NAME_POST_CHAT_MESSAGE = "pst-cm";
     public static final String NAME_RECEIVE_CHAT_MESSAGE = "rec-cm";
+
+    public static final String NAME_POST_CHAT_FILE = "pst-cf";
+    public static final String NAME_REQUEST_CHAT_FILE = "req-cf";
+    public static final String NAME_SEND_CHAT_FILE = "snd-cf";
+    public static final String NAME_RECEIVE_CHAT_FILE = "rec-cf";
 
     public static final String NAME_POST_OUROBOROS_NODE_DATA = "pst-on";
     public static final String NAME_RECEIVE_OUROBOROS_NODE_DATA = "rec-on";
@@ -217,7 +227,7 @@ public class Message {
             return null;
         }
 
-        if (buf.length >= 2 && buf[1].matches(Util.TASK_ID_REGEX)) {
+        if (needTaskId && buf.length >= 2 && buf[1].matches(Util.TASK_ID_REGEX)) {
             return set(buf[0].substring(1), buf[1].substring(1), Util.copyStringArray(buf, 2, -1));
         } else {
             return set(buf[0].substring(1), "?", Util.copyStringArray(buf, 1, -1));
@@ -295,7 +305,7 @@ public class Message {
         StringBuffer res = new StringBuffer("/" + command + " #" + id);
 
         if (dataByte != null && dataByte.length != 0) {
-            res.append(" " + Util.omitString(Util.convertByteArrayToBase64(dataByte), omitDataByteLength, true));
+            res.append(" " + Util.omitByteArrayToHexString(dataByte, omitDataByteLength, true));
         } else if (dataString != null && dataString.length != 0) {
             for (int i = 0; i < dataString.length; i++)
                 res.append(" " + Util.omitString(dataString[i], omitDataByteLength, true));
@@ -353,7 +363,7 @@ public class Message {
     }
 
     public static String convertCommandSignToName(byte command) {
-        switch (Byte.toUnsignedInt(command)) {
+        switch (command) {
         case SIGN_DUPLICATE:
             return NAME_DUPLICATE;
         case SIGN_ALIGNMENT:
@@ -384,6 +394,14 @@ public class Message {
             return NAME_POST_CHAT_MESSAGE;
         case SIGN_RECEIVE_CHAT_MESSAGE:
             return NAME_RECEIVE_CHAT_MESSAGE;
+        case SIGN_POST_CHAT_FILE:
+            return NAME_POST_CHAT_FILE;
+        case SIGN_REQUEST_CHAT_FILE:
+            return NAME_REQUEST_CHAT_FILE;
+        case SIGN_SEND_CHAT_FILE:
+            return NAME_SEND_CHAT_FILE;
+        case SIGN_RECEIVE_CHAT_FILE:
+            return NAME_RECEIVE_CHAT_FILE;
         case SIGN_POST_OUROBOROS_NODE_DATA:
             return NAME_POST_OUROBOROS_NODE_DATA;
         case SIGN_RECEIVE_OUROBOROS_NODE_DATA:
@@ -425,6 +443,14 @@ public class Message {
             return SIGN_POST_CHAT_MESSAGE;
         case NAME_RECEIVE_CHAT_MESSAGE:
             return SIGN_RECEIVE_CHAT_MESSAGE;
+        case NAME_POST_CHAT_FILE:
+            return SIGN_POST_CHAT_FILE;
+        case NAME_REQUEST_CHAT_FILE:
+            return SIGN_REQUEST_CHAT_FILE;
+        case NAME_SEND_CHAT_FILE:
+            return SIGN_SEND_CHAT_FILE;
+        case NAME_RECEIVE_CHAT_FILE:
+            return SIGN_RECEIVE_CHAT_FILE;
         case NAME_POST_OUROBOROS_NODE_DATA:
             return SIGN_POST_OUROBOROS_NODE_DATA;
         case NAME_RECEIVE_OUROBOROS_NODE_DATA:
