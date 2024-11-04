@@ -324,7 +324,7 @@ public class Node {
 
             break;
         case Message.NAME_SEND_CHAT_FILE: // 0 | 0 | 3
-            executeTask(message, 0, new SendChatFile()); // DATA
+            executeTask(message, Client.FORCE_STRING_COMMUNICATION ? 7 : 0, new SendChatFile()); // DATA
 
             break;
         case Message.NAME_RECEIVE_CHAT_FILE: // - | - | 0
@@ -332,7 +332,7 @@ public class Node {
 
             break;
         case Message.NAME_POST_OUROBOROS_NODE_DATA: // 0 | 0 | 1
-            executeTask(message, 0, new PostOuroborosNodeData()); // DATA
+            executeTask(message, Client.FORCE_STRING_COMMUNICATION ? 5 : 0, new PostOuroborosNodeData()); // DATA
 
             break;
         case Message.NAME_RECEIVE_OUROBOROS_NODE_DATA: // - | - | 0

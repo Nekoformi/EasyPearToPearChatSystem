@@ -93,6 +93,10 @@ public class Main {
                         Client.DOWNLOAD_PATH = item.content;
 
                     break;
+                case "force-string":
+                    Client.FORCE_STRING_COMMUNICATION = true;
+
+                    break;
                 case "create":
                     if (Argument.check(item, Util.TYPE_IP_PORT))
                         listeningPort = item.content;

@@ -197,6 +197,7 @@ public class FileCache {
                     byte[] content = Util.getNextDataOnSize(data);
 
                     bufferedOutputStream.write(content, 0, content.length);
+                    bufferedOutputStream.flush();
 
                     double percent = (double)(part + 1) / (double)partSum * 100.0;
 

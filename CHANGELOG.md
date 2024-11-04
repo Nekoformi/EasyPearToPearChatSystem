@@ -3,6 +3,7 @@
 ## E=CS 1.3
 
 - Add feature: Send binary data
+- Add feature: Set force string communication from boot options
 
 ## E=CS 1.2
 

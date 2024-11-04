@@ -475,7 +475,7 @@ public class OuroborosNodeStack {
 
                 client.systemConsole.pushMainLine("Send ONN data to ... " + item.user.display());
 
-                res.add(sendDataFromBinary(item.userId, rem));
+                res.add(sendData(item.userId, rem));
             }
         }
             break;
@@ -489,7 +489,7 @@ public class OuroborosNodeStack {
 
                 client.systemConsole.pushMainLine("Send ONN data to ... " + item.user.display());
 
-                res.add(sendDataFromBinary(item.userId, rem));
+                res.add(sendData(item.userId, rem));
             }
         }
             break;
@@ -503,7 +503,7 @@ public class OuroborosNodeStack {
 
                 client.systemConsole.pushMainLine("Send ONN data to ... " + item.user.display());
 
-                res.add(sendDataFromBinary(item.userId, rem, Util.generateRandomInt(WAITING_TIME_MIN, WAITING_TIME_MAX)));
+                res.add(sendData(item.userId, rem, Util.generateRandomInt(WAITING_TIME_MIN, WAITING_TIME_MAX)));
             }
         }
             break;
@@ -517,8 +517,8 @@ public class OuroborosNodeStack {
 
                 client.systemConsole.pushMainLine("Send ONN data to ... " + item.user.display());
 
-                res.add(sendDataFromBinary(item.userId, rem));
-                res.add(sendDataFromBinary(item.userId, rem, Util.generateRandomInt(WAITING_TIME_MIN, WAITING_TIME_MAX)));
+                res.add(sendData(item.userId, rem));
+                res.add(sendData(item.userId, rem, Util.generateRandomInt(WAITING_TIME_MIN, WAITING_TIME_MAX)));
             }
         }
             break;
@@ -555,7 +555,7 @@ public class OuroborosNodeStack {
 
                 client.systemConsole.pushMainLine("Send ONN data to ... " + item.user.display());
 
-                res.add(sendDataFromBinary(item.userId, rem));
+                res.add(sendData(item.userId, rem));
             }
         }
             break;
@@ -619,6 +619,22 @@ public class OuroborosNodeStack {
         }
 
         return res;
+    }
+
+    public Task sendData(String targetUserId, byte[] data) {
+        if (Client.FORCE_STRING_COMMUNICATION) {
+            return sendDataFromString(targetUserId, data);
+        } else {
+            return sendDataFromBinary(targetUserId, data);
+        }
+    }
+
+    public Task sendData(String targetUserId, byte[] data, int delay) {
+        if (Client.FORCE_STRING_COMMUNICATION) {
+            return sendDataFromString(targetUserId, data, delay);
+        } else {
+            return sendDataFromBinary(targetUserId, data, delay);
+        }
     }
 
     public Task sendDataFromString(String targetUserId, byte[] data) {

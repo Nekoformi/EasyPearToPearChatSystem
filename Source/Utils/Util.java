@@ -32,6 +32,7 @@ public class Util {
     public static final String INTEGER_REGEX = "[\\+-]?" + UNSIGNED_INTEGER_REGEX;
     public static final String UNSIGNED_NUMBER_REGEX = "([0-9]+|[0-9]+\\.[0-9]+)";
     public static final String NUMBER_REGEX = "[\\+-]?" + UNSIGNED_NUMBER_REGEX;
+    public static final String BOOLEAN_REGEX = "(true|false)";
     public static final String IP_ADDRESS_RAW_REGEX = "(0*(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}0*(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])";
     public static final String IP_ADDRESS_DOMAIN_REGEX = "([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\\.)+[a-zA-Z]{2,}";
     public static final String IP_ADDRESS_REGEX = "(" + IP_ADDRESS_RAW_REGEX + "|" + IP_ADDRESS_DOMAIN_REGEX + ")";
@@ -48,14 +49,15 @@ public class Util {
     public static final int TYPE_UNSIGNED_INTEGER = 4;
     public static final int TYPE_NUMBER = 8;
     public static final int TYPE_UNSIGNED_NUMBER = 16;
-    public static final int TYPE_IP_ADDRESS = 32;
-    public static final int TYPE_IP_ADDRESS_PORT = 64;
-    public static final int TYPE_IP_PORT = 128;
-    public static final int TYPE_COMMAND = 256;
-    public static final int TYPE_TASK_ID = 512;
-    public static final int TYPE_USER_ID = 1024;
-    public static final int TYPE_FILE_ID = 2048;
-    public static final int TYPE_ONN_FLAG = 4096;
+    public static final int TYPE_BOOLEAN = 32;
+    public static final int TYPE_IP_ADDRESS = 64;
+    public static final int TYPE_IP_ADDRESS_PORT = 128;
+    public static final int TYPE_IP_PORT = 256;
+    public static final int TYPE_COMMAND = 512;
+    public static final int TYPE_TASK_ID = 1024;
+    public static final int TYPE_USER_ID = 2048;
+    public static final int TYPE_FILE_ID = 4096;
+    public static final int TYPE_ONN_FLAG = 8192;
 
     // Message
 
@@ -508,6 +510,12 @@ public class Util {
                 return null;
             } else {
                 return "not unsigned number";
+            }
+        case TYPE_BOOLEAN:
+            if (data.matches(BOOLEAN_REGEX)) {
+                return null;
+            } else {
+                return "not boolean";
             }
         case TYPE_IP_ADDRESS:
             if (data.matches(IP_ADDRESS_REGEX)) {

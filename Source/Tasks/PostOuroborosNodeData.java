@@ -10,6 +10,39 @@ public class PostOuroborosNodeData extends NetworkTask {
     public PostOuroborosNodeData set(Client client, Node node, Message work) {
         super.set(client, node, work);
 
+        if (Client.FORCE_STRING_COMMUNICATION) {
+            setFromString();
+        } else {
+            setFromBinary();
+        }
+
+        return this;
+    }
+
+    void setFromString() {
+        setProperties(Integer.parseInt(work.getStringData(0)), 10, "pst-on", "rec-on");
+
+        if (isOriginalTask())
+            return;
+
+        String userId = work.getStringData(1).substring(1);
+        String targetUserId = work.getStringData(2).substring(1);
+
+        if (!myProfile.id.equals(targetUserId))
+            return;
+
+        skipSend = true;
+
+        String content = work.getStringData(3);
+        String secureHash = work.getStringData(4);
+
+        if (!(work.check(1, Util.TYPE_USER_ID) && client.checkDataWithUserProfile(userId, content, secureHash)))
+            return;
+
+        client.ouroborosNodeStack.processData(Util.convertBase64ToByteArray(content), false);
+    }
+
+    void setFromBinary() {
         byte[] data = work.getByteData().clone();
 
         byte[] _timeout = Util.getNextDataOnSize(data, 4);
@@ -19,7 +52,7 @@ public class PostOuroborosNodeData extends NetworkTask {
         setProperties(timeout, 10, "pst-on", "rec-on");
 
         if (isOriginalTask())
-            return this;
+            return;
 
         byte[] _userId = Util.getNextDataOnSize(data, 16);
         data = Util.clearByteArrayOnSize(data, 16);
@@ -30,7 +63,7 @@ public class PostOuroborosNodeData extends NetworkTask {
         String targetUserId = Util.convertByteArrayToHexString(_targetUserId);
 
         if (!myProfile.id.equals(targetUserId))
-            return this;
+            return;
 
         skipSend = true;
 
@@ -43,15 +76,30 @@ public class PostOuroborosNodeData extends NetworkTask {
         data = Util.clearByteArrayOnSize(data);
 
         if (!client.checkDataWithUserProfile(userId, _content, _secureHash))
-            return this;
+            return;
 
         client.ouroborosNodeStack.processData(_content, false);
-
-        return this;
     }
 
     @Override
     void send(Node node) {
+        if (Client.FORCE_STRING_COMMUNICATION) {
+            sendFromString(node);
+        } else {
+            sendFromBinary(node);
+        }
+    }
+
+    void sendFromString(Node node) {
+        String userId = work.getStringData(1);
+        String targetUserId = work.getStringData(2);
+        String content = work.getStringData(3);
+        String secureHash = work.getStringData(4);
+
+        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), userId, targetUserId, content, secureHash);
+    }
+
+    void sendFromBinary(Node node) {
         byte[] data = work.getByteData().clone();
 
         node.sendMessage(requestCommand, work.id,

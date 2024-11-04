@@ -94,7 +94,7 @@ public class FileStack {
                 client.systemConsole.pushMainLine("The user (@" + userId + ") requested part (" + partDisplay + ") of the file (#" + fileId + ").");
             }
 
-            sendFileFromBinary(userId, fileId, part, fileStore.readFileData(part));
+            sendFile(userId, fileId, part, fileStore.readFileData(part));
         } else {
             client.systemConsole.pushErrorLine("The user (@" + userId + ") requested an unknown file (#" + fileId + ").");
         }
@@ -146,6 +146,14 @@ public class FileStack {
         Message message = new Message(client.systemConsole, "req-cf", "+", Client.TIMEOUT, userId, targetUserId, targetFileId, partNo, secureHash);
 
         return client.taskStack.run(new RequestChatFile().set(client, null, message));
+    }
+
+    public Task sendFile(String userId, String fileId, int part, byte[] content) {
+        if (Client.FORCE_STRING_COMMUNICATION) {
+            return sendFileFromString(userId, fileId, part, content);
+        } else {
+            return sendFileFromBinary(userId, fileId, part, content);
+        }
     }
 
     public Task sendFileFromString(String userId, String fileId, int part, byte[] content) {

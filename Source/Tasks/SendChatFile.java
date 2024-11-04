@@ -10,6 +10,42 @@ public class SendChatFile extends NetworkTask {
     public SendChatFile set(Client client, Node node, Message work) {
         super.set(client, node, work);
 
+        if (Client.FORCE_STRING_COMMUNICATION) {
+            setFromString();
+        } else {
+            setFromBinary();
+        }
+
+        return this;
+    }
+
+    void setFromString() {
+        setProperties(Integer.parseInt(work.getStringData(0)), 10, "snd-cf", "rec-cf");
+
+        if (isOriginalTask())
+            return;
+
+        String userId = work.getStringData(1).substring(1);
+        String targetUserId = work.getStringData(2).substring(1);
+
+        if (!myProfile.id.equals(targetUserId))
+            return;
+
+        skipSend = true;
+
+        String targetFileId = work.getStringData(3).substring(1);
+        String partNo = work.getStringData(4);
+        String content = work.getStringData(5);
+        String secureHash = work.getStringData(6);
+
+        if (!(work.check(1, Util.TYPE_USER_ID)
+                && client.checkDataWithUserProfile(userId, content + ":" + partNo + "#" + targetFileId + "@" + targetUserId, secureHash)))
+            return;
+
+        client.fileStack.receive(userId, targetFileId, Integer.parseInt(partNo), Util.convertBase64ToByteArray(content));
+    }
+
+    void setFromBinary() {
         byte[] data = work.getByteData().clone();
 
         byte[] _timeout = Util.getNextDataOnSize(data, 4);
@@ -19,7 +55,7 @@ public class SendChatFile extends NetworkTask {
         setProperties(timeout, 10, "snd-cf", "rec-cf");
 
         if (isOriginalTask())
-            return this;
+            return;
 
         byte[] _userId = Util.getNextDataOnSize(data, 16);
         data = Util.clearByteArrayOnSize(data, 16);
@@ -30,7 +66,7 @@ public class SendChatFile extends NetworkTask {
         String targetUserId = Util.convertByteArrayToHexString(_targetUserId);
 
         if (!myProfile.id.equals(targetUserId))
-            return this;
+            return;
 
         skipSend = true;
 
@@ -51,15 +87,32 @@ public class SendChatFile extends NetworkTask {
         data = Util.clearByteArrayOnSize(data);
 
         if (!client.checkDataWithUserProfile(userId, Util.concatByteArray(_targetUserId, _targetFileId, _partNo, _content), _secureHash))
-            return this;
+            return;
 
         client.fileStack.receive(userId, targetFileId, partNo, _content);
-
-        return this;
     }
 
     @Override
     void send(Node node) {
+        if (Client.FORCE_STRING_COMMUNICATION) {
+            sendFromString(node);
+        } else {
+            sendFromBinary(node);
+        }
+    }
+
+    void sendFromString(Node node) {
+        String userId = work.getStringData(1);
+        String targetUserId = work.getStringData(2);
+        String targetFileId = work.getStringData(3);
+        String partNo = work.getStringData(4);
+        String content = work.getStringData(5);
+        String secureHash = work.getStringData(6);
+
+        node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), userId, targetUserId, targetFileId, partNo, content, secureHash);
+    }
+
+    void sendFromBinary(Node node) {
         byte[] data = work.getByteData().clone();
 
         node.sendMessage(requestCommand, work.id,

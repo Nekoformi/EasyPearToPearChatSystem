@@ -54,6 +54,7 @@ public class Client {
 
     public static String TIMEOUT = "10000";
     public static String DOWNLOAD_PATH = "./";
+    public static boolean FORCE_STRING_COMMUNICATION = false;
 
     public Client() {}
 
