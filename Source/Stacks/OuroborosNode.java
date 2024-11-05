@@ -1125,7 +1125,7 @@ public class OuroborosNode {
 
         List<Integer> testNoiseStore = generateNoiseStore(targetFinalMaximumMapStructure, false);
 
-        int testMessageSizeA = calcOuroborosDataSize(MAX_MESSAGE_DATA_SIZE, targetFinalMaximumMapStructure, testNoiseStore);
+        int testMessageSizeA = MAX_MESSAGE_DATA_SIZE + calcOuroborosDataSize(0, targetFinalMaximumMapStructure, testNoiseStore);
         int testMessageSizeB = calcOuroborosDataSize(messageDataSize, mapStructure, null);
 
         return generateNoiseStore(testMessageSizeA - testMessageSizeB, mapStructure, true);
