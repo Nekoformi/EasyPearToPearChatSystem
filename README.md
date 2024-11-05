@@ -36,6 +36,7 @@ $ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -ssl -de
 | `t` `timeout` | `<UNSIGNED INTEGER>` | 10000 | Set the timeout (in milliseconds). |
 | `d` `download` | `<FOLDER PATH>` | ./ | Set the folder to save downloaded files. |
 | `force-string` | `<VOID>` | false | The content to be sent in binary will be forcibly transmitted as a string. This option may be useful when clients with different operating systems fail to communicate. |
+| `message-size` | `<UNSIGNED INTEGER>` | 4096 | Set the maximum packet size (in byte). This option may be useful when clients with different operating systems fail to communicate. |
 | `create` | `<LISTENING PORT>` | - | Create a network at startup. |
 | `join` | `<ADDRESS>:<PORT>,<LISTENING PORT>` | - | Join the network at startup. |
 | `ssl` | `<VOID>` | false | Use SSL (Secure Socket Layer). However, note that the standard state has nonsense on users who know the protocol. |

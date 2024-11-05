@@ -14,7 +14,7 @@ public class OuroborosNode {
     public static final boolean DISPLAY_ONN_PROCESS = true;
     public static final boolean DISPLAY_ONN_PROCESS_FULL_CONTENT = false;
 
-    public static final int MAX_MESSAGE_DATA_SIZE = 8192;
+    public static final int MAX_MESSAGE_DATA_SIZE = 65536 / 2;
     public static final int MIN_DUMMIES_NUM = 2;
 
     public static final byte FLAG_BYTE_NULL = 0;

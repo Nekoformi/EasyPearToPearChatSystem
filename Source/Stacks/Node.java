@@ -19,6 +19,7 @@ import Source.Utils.Util;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 public class Node {
     // Note: Nodeは通信可能なコンピューター（他のNode）に対応する。
@@ -119,12 +120,37 @@ public class Node {
 
         try {
             if (SEND_IN_BINARY) {
-                binaryWriter.write(message.binarize());
+                splitAndSendMessageFromBinary(message.binarize());
             } else {
                 stringWriter.println(message.stringify());
             }
         } catch (IOException e) {
             client.systemConsole.pushErrorLine("Failed to send message.");
+        }
+    }
+
+    void splitAndSendMessageFromBinary(byte[] message) throws IOException {
+        int sumPart = message.length / Client.MESSAGE_DATA_PART_SIZE + 1;
+
+        for (int i = 0; i < sumPart; i++) {
+            int index = i != sumPart - 1 ? i : -1;
+
+            int startIndex = i * Client.MESSAGE_DATA_PART_SIZE;
+            int endIndex = index != -1 ? (i + 1) * Client.MESSAGE_DATA_PART_SIZE : message.length;
+
+            binaryWriter.write(Util.concatByteArray(Util.convertIntToByteArray(index), Arrays.copyOfRange(message, startIndex, endIndex)));
+        }
+    }
+
+    int receiveAndJoinMessageFromBinary(ByteArrayOutputStream res, byte[] rec, int count) {
+        int index = Util.convertByteArrayToInt(Util.getNextDataOnSize(rec, 4));
+
+        if (index == count || index == -1) {
+            res.write(rec, 4, rec.length - 4);
+
+            return index != -1 ? index + 1 : -1;
+        } else {
+            return -2;
         }
     }
 
@@ -183,14 +209,17 @@ public class Node {
         }
 
         void readBinary() throws Exception {
-            while (!done) {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ByteArrayOutputStream messageDataOutputStream = new ByteArrayOutputStream();
+            ByteArrayOutputStream packetDataOutputStream = new ByteArrayOutputStream();
 
+            int count = 0;
+
+            while (!done) {
                 while (true) {
-                    byte[] buffer = new byte[1024];
+                    byte[] buffer = new byte[Client.PACKET_DATA_PART_SIZE];
                     int bufferLength;
 
-                    bufferLength = binaryReader.read(buffer, 0, buffer.length);
+                    bufferLength = binaryReader.read(buffer, 0, Client.PACKET_DATA_PART_SIZE);
 
                     if (bufferLength == -1) {
                         done = true;
@@ -198,16 +227,30 @@ public class Node {
                         break;
                     }
 
-                    byteArrayOutputStream.write(buffer, 0, bufferLength);
+                    packetDataOutputStream.write(buffer, 0, bufferLength);
 
-                    if (bufferLength < buffer.length)
+                    if (bufferLength < Client.PACKET_DATA_PART_SIZE)
                         break;
                 }
 
-                if (byteArrayOutputStream.size() > 0) {
-                    Message message = new Message(client.systemConsole, byteArrayOutputStream.toByteArray(), true).get();
+                if (packetDataOutputStream.size() > 0) {
+                    count = receiveAndJoinMessageFromBinary(messageDataOutputStream, packetDataOutputStream.toByteArray(), count);
 
-                    executeCommand(message);
+                    packetDataOutputStream.reset();
+
+                    if (count < 0) {
+                        if (count == -1) {
+                            Message message = new Message(client.systemConsole, messageDataOutputStream.toByteArray(), true).get();
+
+                            executeCommand(message);
+                        } else {
+                            client.systemConsole.pushErrorLine("Failed to receive message.");
+                        }
+
+                        messageDataOutputStream.reset();
+
+                        count = 0;
+                    }
                 }
             }
         }

@@ -55,6 +55,8 @@ public class Client {
     public static String TIMEOUT = "10000";
     public static String DOWNLOAD_PATH = "./";
     public static boolean FORCE_STRING_COMMUNICATION = false;
+    public static int MESSAGE_DATA_PART_SIZE = 4096;
+    public static int PACKET_DATA_PART_SIZE = 1024;
 
     public Client() {}
 

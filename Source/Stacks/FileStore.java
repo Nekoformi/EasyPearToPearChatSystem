@@ -6,7 +6,7 @@ import Source.Utils.Util;
 import java.io.*;
 
 public class FileStore {
-    public static final int DATA_PART_SIZE = 8192;
+    public static final int DATA_PART_SIZE = 65536;
 
     public Client client;
 
@@ -81,7 +81,11 @@ public class FileStore {
             int length = randomAccessFile.read(data, 0, DATA_PART_SIZE);
 
             if (length > -1) {
-                return Util.concatByteArray(Util.convertIntToByteArray(length), data);
+                if (length == DATA_PART_SIZE) {
+                    return Util.concatByteArray(Util.convertIntToByteArray(length), data);
+                } else {
+                    return Util.concatByteArray(Util.convertIntToByteArray(length), Util.getNextDataOnSize(data, length));
+                }
             } else {
                 return Util.convertIntToByteArray(0);
             }

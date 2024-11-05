@@ -84,7 +84,7 @@ public class Main {
                 case "t":
                 case "timeout":
                     if (Argument.check(item, Util.TYPE_UNSIGNED_INTEGER))
-                        Client.TIMEOUT = item.content;
+                        Client.TIMEOUT = item.content; // = Integer.parseUnsignedInt(item.content);
 
                     break;
                 case "d":
@@ -95,6 +95,11 @@ public class Main {
                     break;
                 case "force-string":
                     Client.FORCE_STRING_COMMUNICATION = true;
+
+                    break;
+                case "message-size":
+                    if (Argument.check(item, Util.TYPE_UNSIGNED_INTEGER))
+                        Client.MESSAGE_DATA_PART_SIZE = Integer.parseUnsignedInt(item.content);
 
                     break;
                 case "create":
