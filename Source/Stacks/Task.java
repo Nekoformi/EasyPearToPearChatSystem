@@ -23,9 +23,11 @@ public class Task extends Thread {
     }
 
     public void waitAndStart(int waitingTime) {
-        client.systemConsole.pushSubLine("Task (#" + work.id + ") will start in " + String.valueOf(waitingTime) + " milliseconds...");
+        if (waitingTime > -1) {
+            client.systemConsole.pushSubLine("Task (#" + work.id + ") will start in " + String.valueOf(waitingTime) + " milliseconds...");
 
-        this.waitingTime = waitingTime;
+            this.waitingTime = waitingTime;
+        }
 
         start();
     }

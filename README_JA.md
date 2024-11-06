@@ -91,6 +91,7 @@ Hello world!
 | `eon` `edit-on` | `<ユーザーID A>` `<ユーザーID B>` `<ユーザーID C>` | ユーザーAの経路についてユーザーBをユーザーCに置換します。 |
 | `eon` `edit-on` | `<ユーザーID A>` `<ユーザーID B>` | ユーザーAの経路についてユーザーBを削除します。 |
 | `mon` `message-on` | `<ユーザーID>` `<文字列 ...>` | Ouroboros Node Networkを利用して対象にメッセージを投稿します。 |
+| `fon` `file-on` | `<ユーザーID>` `<ファイルパス ...>` | Ouroboros Node Networkを利用して対象にファイルを投稿します。 |
 
 | フラグ | 名前 | 説明 |
 | --- | --- | --- |

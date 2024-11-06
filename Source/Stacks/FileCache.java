@@ -12,10 +12,10 @@ public class FileCache {
     User user;
     String fileId;
     String fileName;
+    int sumPart;
 
     int status = 0;
     int part = -1;
-    int partSum = -1;
 
     File file;
     File bufferedFile;
@@ -65,9 +65,9 @@ public class FileCache {
         }
     }
 
-    public boolean requestFileData() {
+    public boolean prepareFileData() {
         part = -1;
-        partSum = -1;
+        sumPart = -1;
 
         if (!setFolder())
             return false;
@@ -170,27 +170,7 @@ public class FileCache {
 
     public int writeFileData(int part, byte[] data) {
         if (status == 1 && part == -1) {
-            partSum = Util.convertByteArrayToInt(data);
-
-            if (partSum > 0) {
-                client.systemConsole.pushMainLine("Downloading file (#" + fileId + ") ... 0%");
-
-                status = 2;
-
-                return ++this.part;
-            } else if (partSum == -1) {
-                client.systemConsole.pushWarningLine("The file (#" + fileId + ") has been removed from the stock by its owner.");
-
-                discard();
-
-                return -1;
-            } else {
-                client.systemConsole.pushErrorLine("Failed to receive file (#" + fileId + ").");
-
-                discard();
-
-                return -2;
-            }
+            return setSumPart(Util.convertByteArrayToInt(data));
         } else if (status == 2 && part == this.part) {
             if (data.length > 4) {
                 try {
@@ -199,7 +179,7 @@ public class FileCache {
                     bufferedOutputStream.write(content, 0, content.length);
                     bufferedOutputStream.flush();
 
-                    double percent = (double)(part + 1) / (double)partSum * 100.0;
+                    double percent = (double)(part + 1) / (double)sumPart * 100.0;
 
                     client.systemConsole.pushMainLine("Downloading file (#" + fileId + ") ... " + String.format("%.2f", percent) + "%");
                 } catch (IOException e) {
@@ -211,7 +191,7 @@ public class FileCache {
                 }
             }
 
-            if (data.length > 4 && part + 1 < partSum) {
+            if (data.length > 4 && part + 1 < sumPart) {
                 return ++this.part;
             } else {
                 if (bufferedFile.renameTo(file)) {
@@ -237,11 +217,39 @@ public class FileCache {
         }
     }
 
+    public int setSumPart(int sumPart) {
+        this.sumPart = sumPart;
+
+        if (sumPart > 0) {
+            client.systemConsole.pushMainLine("Downloading file (#" + fileId + ") ... 0%");
+
+            status = 2;
+
+            return ++this.part;
+        } else if (sumPart == -1) {
+            client.systemConsole.pushWarningLine("The file (#" + fileId + ") has been removed from the stock by its owner.");
+
+            discard();
+
+            return -1;
+        } else {
+            client.systemConsole.pushErrorLine("Failed to receive file (#" + fileId + ").");
+
+            discard();
+
+            return -2;
+        }
+    }
+
     public String getUserId() {
         return user != null ? user.id : null;
     }
 
     public String getFileId() {
         return fileId;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 }

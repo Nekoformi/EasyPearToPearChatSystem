@@ -91,6 +91,7 @@ Hello world!
 | `eon` `edit-on` | `<USER ID A>` `<USER ID B>` `<USER ID C>` | Replace user C for user B on user A's map. |
 | `eon` `edit-on` | `<USER ID A>` `<USER ID B>` | Delete user B from user A's map. |
 | `mon` `message-on` | `<USER ID>` `<STRING ...>` | Send chat message to target using the Ouroboros Node Network. |
+| `fon` `file-on` | `<USER ID>` `<FILE PATH ...>` | Send file to target using the Ouroboros Node Network. |
 
 | Flag | Name | Detail |
 | --- | --- | --- |

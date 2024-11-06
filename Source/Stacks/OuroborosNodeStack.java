@@ -434,21 +434,39 @@ public class OuroborosNodeStack {
     }
 
     public OuroborosNode postFileData(String targetUserId, String filePath) {
-        // WIP
+        OuroborosNode ouroborosNode = get(targetUserId);
 
-        OuroborosNode rec = get(targetUserId);
-
-        if (rec == null) {
+        if (ouroborosNode == null) {
             client.systemConsole.pushErrorLine(typeErrorUnknownOuroborosNode(targetUserId));
 
             return null;
         }
 
-        // byte[] res = rec.createOuroborosData(filePath);
+        FileStore fileStore = client.fileStack.addPrivateFileStore(filePath, ouroborosNode.target, OuroborosNode.MAX_MESSAGE_DATA_SIZE - (16 + 4 + 4));
 
-        // processData(res, true);
+        if (fileStore == null) {
+            client.systemConsole.pushErrorLine("Failed to prepare file.");
 
-        return rec;
+            return null;
+        }
+
+        byte[] fileId = Util.convertHexStringToByteArray(fileStore.getFileId());
+        byte[] filePartNo = Util.convertIntToByteArray(-1);
+        byte[] fileSumPart = Util.convertIntToByteArray(fileStore.getFileSumPart());
+        byte[] fileName = Util.convertStringToByteArray(fileStore.getFileName());
+        byte[] fileNameSize = Util.convertIntToByteArray(fileName.length);
+
+        byte[] res = ouroborosNode.createOuroborosData(Util.concatByteArray(fileId, filePartNo, fileSumPart, fileNameSize, fileName),
+                OuroborosNode.MESSAGE_TYPE_BINARY_SND);
+
+        // res = {
+        // ### fileId[16], filePartNo[4], fileSumPart[4],
+        // ### fileNameSize[4], fileName[...]
+        // };
+
+        processData(res, true);
+
+        return ouroborosNode;
     }
 
     public Task[] processData(byte[] data, boolean skipPeel) {
@@ -523,25 +541,59 @@ public class OuroborosNodeStack {
         }
             break;
         case OuroborosNode.FLAG_BYTE_RECEIVE: {
+            byte[] message = rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 3];
+
             displayDataSummary(rec, data.length);
 
             OuroborosNode rem = addOuroborosNodeFromData(rec);
 
             if (rem != null) {
-                if (rem.addMessageStore(messageId)) {
+                if (true /* rem.addMessageStore(messageId) */) {
                     if (type == OuroborosNode.MESSAGE_TYPE_STRING) {
-                        String postUserName = rem.target.name;
-                        String sendUserName = rem.myself.name;
-                        String chatMessage = Util.convertByteArrayToString(rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 3]).replaceAll("\\\\n", "\n");
+                        String chatMessage = Util.convertByteArrayToString(message).replaceAll("\\\\n", "\n");
 
-                        client.chatConsole.pushMainLine(
-                                Client.getCurrentTimeDisplay() + postUserName + " → " + sendUserName + " [Private Message / Send with ONN]:\n" + chatMessage);
+                        client.chatConsole.pushMainLine(typeChatMessage(rem, chatMessage));
+
+                        processData(rem.createOuroborosFinishData(messageId, messageSize), true);
+                    } else {
+                        byte[] buf;
+
+                        try {
+                            switch (type) {
+                            case OuroborosNode.MESSAGE_TYPE_BINARY_SND: {
+                                byte[] nextMessage = receiveFile(rem, message);
+
+                                if (nextMessage != null) {
+                                    buf = rem.createOuroborosData(messageId, messageSize, nextMessage, OuroborosNode.MESSAGE_TYPE_BINARY_REQ);
+                                } else {
+                                    buf = rem.createOuroborosFinishData(messageId, messageSize);
+                                }
+                            }
+                                break;
+                            case OuroborosNode.MESSAGE_TYPE_BINARY_REQ: {
+                                byte[] nextMessage = sendFile(rem, message);
+
+                                if (nextMessage != null) {
+                                    buf = rem.createOuroborosData(messageId, messageSize, nextMessage, OuroborosNode.MESSAGE_TYPE_BINARY_SND);
+                                } else {
+                                    buf = rem.createOuroborosFinishData(messageId, messageSize);
+                                }
+                            }
+                                break;
+                            default:
+                                buf = rem.createOuroborosFinishData(messageId, messageSize);
+
+                                break;
+                            }
+                        } catch (Exception e) {
+                            client.systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Something is wrong."));
+
+                            buf = rem.createOuroborosFinishData(messageId, messageSize);
+                        }
+
+                        processData(buf, true);
                     }
                 }
-
-                byte[] buf = rem.createOuroborosFinishData(messageId, messageSize);
-
-                processData(buf, true);
             }
         }
             break;
@@ -621,6 +673,94 @@ public class OuroborosNodeStack {
         return res;
     }
 
+    byte[] receiveFile(OuroborosNode ouroborosNode, byte[] message) throws Exception {
+        String userId = ouroborosNode.target.id;
+
+        byte[] _fileId = Util.getNextDataOnSize(message, 16);
+        message = Util.clearByteArrayOnSize(message, 16);
+        String fileId = Util.convertByteArrayToHexString(_fileId);
+
+        byte[] _filePartNo = Util.getNextDataOnSize(message, 4);
+        message = Util.clearByteArrayOnSize(message, 4);
+        int filePartNo = Util.convertByteArrayToInt(_filePartNo);
+
+        FileCache fileCache = client.fileStack.getFileCache(userId, fileId);
+
+        if (fileCache == null && filePartNo == -1) {
+            byte[] _fileSumPart = Util.getNextDataOnSize(message, 4);
+            message = Util.clearByteArrayOnSize(message, 4);
+            int fileSumPart = Util.convertByteArrayToInt(_fileSumPart);
+
+            byte[] _fileName = Util.getNextDataOnSize(message);
+            message = Util.clearByteArrayOnSize(message);
+            String fileName = Util.convertByteArrayToString(_fileName);
+
+            fileCache = client.fileStack.addFileCache(userId, fileId, fileName);
+
+            if (fileCache != null && fileCache.prepareFileData()) {
+                int rec = fileCache.setSumPart(fileSumPart);
+
+                if (rec > -1) {
+                    client.chatConsole.pushSubLine(typeChatMessage(ouroborosNode, "Start receiving the file: " + fileName));
+
+                    return Util.concatByteArray(_fileId, Util.convertIntToByteArray(0));
+                }
+            }
+        } else if (fileCache != null) {
+            int rec = fileCache.writeFileData(filePartNo, message);
+
+            if (rec > -1) {
+                return Util.concatByteArray(_fileId, Util.convertIntToByteArray(rec));
+            } else if (rec == -1) {
+                client.chatConsole.pushSubLine(typeChatMessage(ouroborosNode, "Finish receiving the file: " + fileCache.getFileName()));
+
+                return Util.concatByteArray(_fileId, Util.convertIntToByteArray(-2));
+            }
+        }
+
+        if (fileCache == null) {
+            client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "Failed to receive file."));
+        } else {
+            client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "Failed to receive file: " + fileCache.getFileName()));
+        }
+
+        return null;
+    }
+
+    byte[] sendFile(OuroborosNode ouroborosNode, byte[] message) throws Exception {
+        String userId = ouroborosNode.target.id;
+
+        byte[] _fileId = Util.getNextDataOnSize(message, 16);
+        message = Util.clearByteArrayOnSize(message, 16);
+        String fileId = Util.convertByteArrayToHexString(_fileId);
+
+        byte[] _filePartNo = Util.getNextDataOnSize(message, 4);
+        message = Util.clearByteArrayOnSize(message, 4);
+        int filePartNo = Util.convertByteArrayToInt(_filePartNo);
+
+        byte[] fileData = client.fileStack.read(userId, fileId, filePartNo);
+
+        if (fileData == null) {
+            client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "Failed to send file."));
+
+            return null;
+        }
+
+        if (filePartNo == -2) {
+            FileStore fileStore = client.fileStack.getFileStore(fileId);
+
+            if (fileStore != null) {
+                client.chatConsole.pushSubLine(typeChatMessage(ouroborosNode, "Finish sending the file: " + fileStore.getFileName()));
+            } else {
+                client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "This message should not appear ... why?"));
+            }
+
+            return null;
+        }
+
+        return Util.concatByteArray(_fileId, _filePartNo, fileData);
+    }
+
     public Task sendData(String targetUserId, byte[] data) {
         if (Client.FORCE_STRING_COMMUNICATION) {
             return sendDataFromString(targetUserId, data);
@@ -637,11 +777,11 @@ public class OuroborosNodeStack {
         }
     }
 
-    public Task sendDataFromString(String targetUserId, byte[] data) {
+    Task sendDataFromString(String targetUserId, byte[] data) {
         return sendDataFromString(targetUserId, data, -1);
     }
 
-    public Task sendDataFromString(String targetUserId, byte[] data, int delay) {
+    Task sendDataFromString(String targetUserId, byte[] data, int delay) {
         String userId = "@" + client.userStack.myProfile.id;
         String content = Util.convertByteArrayToBase64(data);
         String secureHash = client.generateSecureHashWithMyProfile(content);
@@ -653,11 +793,11 @@ public class OuroborosNodeStack {
         return client.taskStack.run(new PostOuroborosNodeData().set(client, null, message), delay);
     }
 
-    public Task sendDataFromBinary(String targetUserId, byte[] data) {
+    Task sendDataFromBinary(String targetUserId, byte[] data) {
         return sendDataFromBinary(targetUserId, data, -1);
     }
 
-    public Task sendDataFromBinary(String targetUserId, byte[] data, int delay) {
+    Task sendDataFromBinary(String targetUserId, byte[] data, int delay) {
         byte[] _timeout = Util.convertIntToByteArray(Integer.parseInt(Client.TIMEOUT));
         byte[] _userId = Util.convertHexStringToByteArray(client.userStack.myProfile.id);
         byte[] _targetUserId = Util.convertHexStringToByteArray(targetUserId);
@@ -678,42 +818,49 @@ public class OuroborosNodeStack {
         return client.taskStack.run(new PostOuroborosNodeData().set(client, null, message), delay);
     }
 
-    String typeMap() {
+    public static String typeChatMessage(OuroborosNode ouroborosNode, String message) {
+        String postUserName = ouroborosNode.target.name;
+        String sendUserName = ouroborosNode.myself.name;
+
+        return Client.getCurrentTimeDisplay() + postUserName + " → " + sendUserName + " [Private Message / Send with ONN]:\n" + message;
+    }
+
+    public static String typeMap() {
         return "map of the Ouroboros Node Network.";
     }
 
-    String typeMap(OuroborosNode ouroborosNode) {
+    public static String typeMap(OuroborosNode ouroborosNode) {
         String postDisplay = ouroborosNode.myself.display();
         String sendDisplay = ouroborosNode.target.display();
 
         return "map of the Ouroboros Node Network: " + postDisplay + " ↔ " + sendDisplay;
     }
 
-    String typeErrorYourself(User user) {
+    public static String typeErrorYourself(User user) {
         return typeErrorYourself(user.id);
     }
 
-    String typeErrorYourself(String userId) {
+    public static String typeErrorYourself(String userId) {
         return "You can't set yourself (@" + userId + ") as the recipient.";
     }
 
-    String typeErrorUnknownUser(User user) {
+    public static String typeErrorUnknownUser(User user) {
         return typeErrorUnknownUser(user.id);
     }
 
-    String typeErrorUnknownUser(String userId) {
+    public static String typeErrorUnknownUser(String userId) {
         return "The specified user (@" + userId + ") does not exist.";
     }
 
-    String typeErrorUnknownOuroborosNode() {
+    public static String typeErrorUnknownOuroborosNode() {
         return "The Ouroboros Node does not exist.";
     }
 
-    String typeErrorUnknownOuroborosNode(User user) {
+    public static String typeErrorUnknownOuroborosNode(User user) {
         return typeErrorUnknownOuroborosNode(user.id);
     }
 
-    String typeErrorUnknownOuroborosNode(String userId) {
+    public static String typeErrorUnknownOuroborosNode(String userId) {
         return "The Ouroboros Node (send to @" + userId + ") does not exist.";
     }
 }

@@ -47,10 +47,11 @@ public class OuroborosNode {
     public static final int DEFAULT_PROPERTY_SIZE = 16 + 4 + 1 + 1 + 4 + 4;
 
     public static final byte MESSAGE_TYPE_STRING = (byte)0x00;
-    public static final byte MESSAGE_TYPE_BINARY = (byte)0x01;
-    public static final byte MESSAGE_TYPE_FINISH = (byte)0x02;
-    public static final byte MESSAGE_TYPE_SYNCHRONIZE = (byte)0x03;
-    public static final byte MESSAGE_TYPE_ACKNOWLEDGE = (byte)0x04;
+    public static final byte MESSAGE_TYPE_BINARY_SND = (byte)0x01;
+    public static final byte MESSAGE_TYPE_BINARY_REQ = (byte)0x02;
+    public static final byte MESSAGE_TYPE_FINISH = (byte)0x03;
+    public static final byte MESSAGE_TYPE_SYNCHRONIZE = (byte)0x04;
+    public static final byte MESSAGE_TYPE_ACKNOWLEDGE = (byte)0x05;
     public static final byte MESSAGE_TYPE_NULL = (byte)0xFF;
 
     public static final int ONN_LAYER_3_PROPERTY_SIZE = 4;
@@ -1071,10 +1072,10 @@ public class OuroborosNode {
         return createOuroborosData(messageId, Util.convertStringToByteArray(messageData), MESSAGE_TYPE_STRING);
     }
 
-    public byte[] createOuroborosData(byte[] messageData) {
+    public byte[] createOuroborosData(byte[] messageData, byte type) {
         byte[] messageId = Util.generateNoiseByte(16);
 
-        return createOuroborosData(messageId, messageData, MESSAGE_TYPE_BINARY);
+        return createOuroborosData(messageId, messageData, type);
     }
 
     public byte[] createOuroborosSynchronizeData() {
@@ -1101,6 +1102,14 @@ public class OuroborosNode {
 
     public byte[] createOuroborosData(byte[] messageId, byte[] messageData, byte type) {
         return createOuroborosData(messageId, messageData, type, map.getMapStructure());
+    }
+
+    public byte[] createOuroborosData(byte[] messageId, byte[] messageSize, String messageData) {
+        return createOuroborosData(messageId, messageSize, Util.convertStringToByteArray(messageData), MESSAGE_TYPE_STRING, map.getMapStructure(), false);
+    }
+
+    public byte[] createOuroborosData(byte[] messageId, byte[] messageSize, byte[] messageData, byte type) {
+        return createOuroborosData(messageId, messageSize, messageData, type, map.getMapStructure(), false);
     }
 
     public byte[] createOuroborosData(byte[] messageId, byte[] messageData, byte type, MapStructure mapStructure) {

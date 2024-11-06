@@ -19,25 +19,67 @@ public class FileStack {
         this.client = client;
     }
 
-    public void addFileStore(String filePath) {
-        FileStore fileStore = new FileStore(client);
+    public FileStore addPublicFileStore(String filePath) {
+        return addPublicFileStore(filePath, Client.FILE_DATA_PART_SIZE);
+    }
+
+    public FileStore addPublicFileStore(String filePath, int partSize) {
+        FileStore fileStore = new FileStore(client, partSize);
 
         if (fileStore.set(filePath)) {
             if (getFileStore(fileStore.getFileId()) == null) {
                 fileStoreStack.add(fileStore);
 
                 postFile(fileStore);
+
+                return fileStore;
             } else {
                 client.systemConsole.pushErrorLine("You are very lucky ... but please try the same operation again.");
             }
         }
+
+        return null;
     }
 
-    public void addFileCache(String userId, String fileId, String fileName) {
+    public FileStore addPrivateFileStore(String filePath, User allowUserList) {
+        return addPrivateFileStore(filePath, allowUserList, Client.FILE_DATA_PART_SIZE);
+    }
+
+    public FileStore addPrivateFileStore(String filePath, User allowUserList, int partSize) {
+        return addPrivateFileStore(filePath, Util.createExpandableList(allowUserList), partSize);
+    }
+
+    public FileStore addPrivateFileStore(String filePath, List<User> allowUserList) {
+        return addPrivateFileStore(filePath, allowUserList, Client.FILE_DATA_PART_SIZE);
+    }
+
+    public FileStore addPrivateFileStore(String filePath, List<User> allowUserList, int partSize) {
+        FileStore fileStore = new FileStore(client, partSize);
+
+        if (fileStore.set(filePath)) {
+            if (getFileStore(fileStore.getFileId()) == null) {
+                fileStore.setAllowedUserList(allowUserList);
+                fileStoreStack.add(fileStore);
+
+                return fileStore;
+            } else {
+                client.systemConsole.pushErrorLine("You are very lucky ... but please try the same operation again.");
+            }
+        }
+
+        return null;
+    }
+
+    public FileCache addFileCache(String userId, String fileId, String fileName) {
         FileCache fileCache = new FileCache(client);
 
-        if (fileCache.set(userId, fileId, fileName))
+        if (fileCache.set(userId, fileId, fileName)) {
             fileCacheStack.add(fileCache);
+
+            return fileCache;
+        }
+
+        return null;
     }
 
     public FileStore getFileStore(String fileId) {
@@ -68,7 +110,7 @@ public class FileStack {
         FileCache fileCache = getFileCache(userId, fileId);
 
         if (fileCache != null) {
-            if (fileCache.requestFileData()) {
+            if (fileCache.prepareFileData()) {
                 client.systemConsole.pushMainLine("Request the file (#" + fileId + ") from the user (@" + userId + ").");
 
                 requestFile(fileCache, -1);
@@ -78,26 +120,46 @@ public class FileStack {
         }
     }
 
-    public void send(String userId, String fileId, int part) {
+    public byte[] read(String userId, String fileId, int part) {
         FileStore fileStore = getFileStore(fileId);
 
         if (fileStore != null) {
-            if (part == -1) {
-                if (!fileStore.isRemoved()) {
-                    client.systemConsole.pushMainLine("The user (@" + userId + ") requested the file (#" + fileId + ").");
+            if (fileStore.isAllowedUser(userId)) {
+                if (part < 0) {
+                    if (!fileStore.isRemoved()) {
+                        switch (part) {
+                        case -1:
+                            client.systemConsole.pushMainLine("The user (@" + userId + ") requested the file (#" + fileId + ").");
+                            break;
+                        case -2:
+                            client.systemConsole.pushMainLine("The user (@" + userId + ") has completed receiving the file (#" + fileId + ").");
+                            break;
+                        }
+                    } else {
+                        client.systemConsole.pushWarningLine("The user (@" + userId + ") requested removed file (#" + fileId + ").");
+                    }
                 } else {
-                    client.systemConsole.pushWarningLine("The user (@" + userId + ") requested removed file (#" + fileId + ").");
+                    String partDisplay = String.valueOf(part + 1) + " / " + String.valueOf(fileStore.getFileSumPart());
+
+                    client.systemConsole.pushMainLine("The user (@" + userId + ") requested part (" + partDisplay + ") of the file (#" + fileId + ").");
                 }
+
+                return fileStore.readFileData(part);
             } else {
-                String partDisplay = String.valueOf(part + 1) + " / " + String.valueOf(fileStore.getFileSumPart());
-
-                client.systemConsole.pushMainLine("The user (@" + userId + ") requested part (" + partDisplay + ") of the file (#" + fileId + ").");
+                client.systemConsole.pushErrorLine("The user (@" + userId + ") who is not allowed to download requested the file (#" + fileId + ").");
             }
-
-            sendFile(userId, fileId, part, fileStore.readFileData(part));
         } else {
             client.systemConsole.pushErrorLine("The user (@" + userId + ") requested an unknown file (#" + fileId + ").");
         }
+
+        return null;
+    }
+
+    public void send(String userId, String fileId, int part) {
+        byte[] data = read(userId, fileId, part);
+
+        if (data != null)
+            sendFile(userId, fileId, part, data);
     }
 
     public void receive(String userId, String fileId, int part, byte[] data) {
@@ -110,6 +172,20 @@ public class FileStack {
                 requestFile(fileCache, rec);
         } else {
             client.systemConsole.pushErrorLine("An unknown file (#" + fileId + " by @" + userId + ") received.");
+        }
+    }
+
+    public int write(String userId, String fileId, int part, byte[] data) {
+        FileCache fileCache = getFileCache(userId, fileId);
+
+        if (fileCache != null) {
+            int rec = fileCache.writeFileData(part, data);
+
+            return rec;
+        } else {
+            client.systemConsole.pushErrorLine("An unknown file (#" + fileId + " by @" + userId + ") received.");
+
+            return -3;
         }
     }
 
@@ -156,7 +232,7 @@ public class FileStack {
         }
     }
 
-    public Task sendFileFromString(String userId, String fileId, int part, byte[] content) {
+    Task sendFileFromString(String userId, String fileId, int part, byte[] content) {
         String myselfUserId = "@" + client.userStack.myProfile.id;
         String targetUserId = "@" + userId;
         String targetFileId = "#" + fileId;
@@ -170,7 +246,7 @@ public class FileStack {
         return client.taskStack.run(new SendChatFile().set(client, null, message));
     }
 
-    public Task sendFileFromBinary(String userId, String fileId, int part, byte[] content) {
+    Task sendFileFromBinary(String userId, String fileId, int part, byte[] content) {
         byte[] _timeout = Util.convertIntToByteArray(Integer.parseInt(Client.TIMEOUT));
         byte[] _myselfUserId = Util.convertHexStringToByteArray(client.userStack.myProfile.id);
         byte[] _targetUserId = Util.convertHexStringToByteArray(userId);

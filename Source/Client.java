@@ -19,6 +19,7 @@ import Source.Utils.Util;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.*;
 import java.util.*;
 import javax.net.ssl.*;
 
@@ -57,6 +58,7 @@ public class Client {
     public static boolean FORCE_STRING_COMMUNICATION = false;
     public static int MESSAGE_DATA_PART_SIZE = 4096;
     public static int PACKET_DATA_PART_SIZE = 1024;
+    public static int FILE_DATA_PART_SIZE = 65536;
 
     public Client() {}
 
@@ -326,7 +328,7 @@ public class Client {
         case "file":
         case "f":
             if (message.check(0, Util.TYPE_STRING))
-                fileStack.addFileStore(message.join(0));
+                fileStack.addPublicFileStore(message.join(0));
 
             break;
         case "file-request":
@@ -486,12 +488,23 @@ public class Client {
                 if (rec == null)
                     break;
 
-                String postUserName = rec.myself.name;
-                String sendUserName = rec.target.name;
                 String chatMessage = message.join(1).replaceAll("\\\\n", "\n");
 
-                chatConsole.pushMainLine(
-                        Client.getCurrentTimeDisplay() + postUserName + " → " + sendUserName + " [Private Message / Send with ONN]:\n" + chatMessage);
+                chatConsole.pushMainLine(OuroborosNodeStack.typeChatMessage(rec, chatMessage));
+            }
+
+            break;
+        case "file-on":
+        case "fon":
+            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING)) {
+                OuroborosNode rec = ouroborosNodeStack.postFileData(message.getStringData(0).substring(1), message.join(1));
+
+                if (rec == null)
+                    break;
+
+                String chatMessage = "Start sending the file: " + Paths.get(message.join(1)).getFileName().toString();
+
+                chatConsole.pushSubLine(OuroborosNodeStack.typeChatMessage(rec, chatMessage));
             }
 
             break;

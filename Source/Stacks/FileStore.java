@@ -4,15 +4,17 @@ import Source.Client;
 import Source.Utils.Util;
 
 import java.io.*;
+import java.util.*;
 
 public class FileStore {
-    public static final int DATA_PART_SIZE = 65536;
-
     public Client client;
 
     String id;
+    int partSize = Client.FILE_DATA_PART_SIZE;
     int sumPart = 0;
     boolean isRemoved = false;
+
+    List<User> allowedUserList;
 
     File file;
     RandomAccessFile randomAccessFile;
@@ -23,12 +25,19 @@ public class FileStore {
         id = Util.generateNoiseHexString(16);
     }
 
+    public FileStore(Client client, int partSize) {
+        this.client = client;
+        this.partSize = partSize;
+
+        id = Util.generateNoiseHexString(16);
+    }
+
     public boolean set(String filePath) {
         file = new File(filePath);
 
         if (file != null && file.exists()) {
             try {
-                sumPart = (int)((file.length() - 1) / DATA_PART_SIZE) + 1;
+                sumPart = (int)((file.length() - 1) / partSize) + 1;
 
                 randomAccessFile = new RandomAccessFile(file, "r");
 
@@ -47,6 +56,10 @@ public class FileStore {
         }
     }
 
+    public void setAllowedUserList(List<User> allowedUserList) {
+        this.allowedUserList = allowedUserList;
+    }
+
     public void free() {
         isRemoved = true;
 
@@ -61,27 +74,27 @@ public class FileStore {
         if (isRemoved)
             return Util.convertIntToByteArray(-1);
 
-        if (part < -1 || part > sumPart) {
+        if (part < -2 || part > sumPart) {
             String partNo = String.valueOf(part);
-            String fileDataLength = String.valueOf(sumPart) + " * " + String.valueOf(DATA_PART_SIZE) + " byte";
+            String fileDataLength = String.valueOf(sumPart) + " * " + String.valueOf(partSize) + " byte";
 
             client.systemConsole.pushErrorLine("The specified part (" + partNo + ") is larger than the file size (" + fileDataLength + ").");
 
             return null;
         } else if (part == -1) {
             return Util.convertIntToByteArray(sumPart);
-        } else if (part == sumPart) {
+        } else if (part == -2 || part == sumPart) {
             return Util.convertIntToByteArray(0);
         }
 
         try {
-            randomAccessFile.seek(part * DATA_PART_SIZE);
+            randomAccessFile.seek(part * partSize);
 
-            byte[] data = new byte[DATA_PART_SIZE];
-            int length = randomAccessFile.read(data, 0, DATA_PART_SIZE);
+            byte[] data = new byte[partSize];
+            int length = randomAccessFile.read(data, 0, partSize);
 
             if (length > -1) {
-                if (length == DATA_PART_SIZE) {
+                if (length == partSize) {
                     return Util.concatByteArray(Util.convertIntToByteArray(length), data);
                 } else {
                     return Util.concatByteArray(Util.convertIntToByteArray(length), Util.getNextDataOnSize(data, length));
@@ -114,5 +127,24 @@ public class FileStore {
 
     public boolean isRemoved() {
         return isRemoved;
+    }
+
+    public boolean isAllowedUser(String targetUserId) {
+        if (allowedUserList == null)
+            return true;
+
+        User targetUser = client.userStack.get(targetUserId);
+
+        if (targetUser != null) {
+            if (allowedUserList.stream().filter(user -> user.id.equals(targetUser.id)).findFirst().orElse(null) != null) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            client.systemConsole.pushErrorLine("The specified user (@" + targetUserId + ") does not exist.");
+
+            return false;
+        }
     }
 }
