@@ -28,13 +28,10 @@ public class FileCache {
     }
 
     public boolean set(String userId, String fileId, String fileName) {
-        User user = client.userStack.get(userId);
+        User user = client.userStack.test(userId);
 
-        if (user == null) {
-            client.systemConsole.pushErrorLine("The specified user (@" + userId + ") does not exist.");
-
+        if (user == null)
             return false;
-        }
 
         this.user = user;
         this.fileId = fileId;

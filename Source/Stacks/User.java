@@ -103,6 +103,14 @@ public class User {
         return get();
     }
 
+    public boolean equals(String id) {
+        return this.id.equals(id);
+    }
+
+    public boolean equals(User user) {
+        return equals(user.id);
+    }
+
     public String stringify() {
         return "@" + id + "," + Util.convertStringToBase64(name) + "," + publicKeyString;
     }

@@ -134,8 +134,12 @@ keytool -import \
 
 - [FlatLaf](https://www.formdev.com/flatlaf/)
 
-## Bucket list
+## To do list
 
 - Add function: to send private message.
 - Add function: to enhance network security with password.
 - Add function: to add clients to blacklist.
+
+## To don't list
+
+- Solve problem: Continuous communication sometimes cuts off ... why?

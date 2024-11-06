@@ -63,19 +63,16 @@ public class OuroborosNodeStack {
     public synchronized OuroborosNode add(String targetUserId, int pickDummyNum) {
         User myself = client.userStack.myProfile;
 
-        if (targetUserId.equals(myself.id)) {
+        if (myself.equals(targetUserId)) {
             client.systemConsole.pushErrorLine(typeErrorYourself(targetUserId));
 
             return null;
         }
 
-        User target = client.userStack.get(targetUserId);
+        User target = client.userStack.test(targetUserId);
 
-        if (target == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(targetUserId));
-
+        if (target == null)
             return null;
-        }
 
         OuroborosNode ouroborosNode = new OuroborosNode(client, target, pickDummyNum);
 
@@ -119,13 +116,10 @@ public class OuroborosNodeStack {
     }
 
     public synchronized OuroborosNode add(String postedUserId, String mapStructureData) {
-        User posted = client.userStack.get(postedUserId);
+        User posted = client.userStack.test(postedUserId);
 
-        if (posted == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(postedUserId));
-
+        if (posted == null)
             return null;
-        }
 
         OuroborosNode ouroborosNode = new OuroborosNode(client, posted, mapStructureData);
 
@@ -197,14 +191,17 @@ public class OuroborosNodeStack {
         remove(ouroborosNode);
     }
 
+    public OuroborosNode test(String userId) {
+        User user = client.userStack.test(userId);
+
+        if (user == null)
+            return null;
+
+        return ouroborosNodeStack.stream().filter(node -> node.target == user).findFirst().orElse(null);
+    }
+
     public OuroborosNode get(String userId) {
         User user = client.userStack.get(userId);
-
-        // if (user == null) {
-        // client.systemConsole.pushErrorLine(typeErrorUnknownUser(userId));
-
-        // return null;
-        // }
 
         return ouroborosNodeStack.stream().filter(node -> node.target == user).findFirst().orElse(null);
     }
@@ -225,37 +222,25 @@ public class OuroborosNodeStack {
     }
 
     public void insertNode(String targetMapUserId, String connectBeforeNodeUserId, String connectAfterNodeUserId, String insertNodeUserId, String flag) {
-        User targetMapUser = client.userStack.get(targetMapUserId);
+        User targetMapUser = client.userStack.test(targetMapUserId);
 
-        if (targetMapUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(targetMapUserId));
-
+        if (targetMapUser == null)
             return;
-        }
 
-        User connectBeforeNodeUser = client.userStack.get(connectBeforeNodeUserId);
+        User connectBeforeNodeUser = client.userStack.test(connectBeforeNodeUserId);
 
-        if (connectBeforeNodeUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(connectBeforeNodeUserId));
-
+        if (connectBeforeNodeUser == null)
             return;
-        }
 
-        User connectAfterNodeUser = client.userStack.get(connectAfterNodeUserId);
+        User connectAfterNodeUser = client.userStack.test(connectAfterNodeUserId);
 
-        if (connectAfterNodeUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(connectAfterNodeUserId));
-
+        if (connectAfterNodeUser == null)
             return;
-        }
 
-        User insertNodeUser = client.userStack.get(insertNodeUserId);
+        User insertNodeUser = client.userStack.test(insertNodeUserId);
 
-        if (insertNodeUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(insertNodeUserId));
-
+        if (insertNodeUser == null)
             return;
-        }
 
         if (OuroborosNode.getFlagType(flag) != 3) {
             client.systemConsole.pushErrorLine("You can't specify any flag other than \"DUM\", \"WAI\", or \"REP\".");
@@ -271,7 +256,7 @@ public class OuroborosNodeStack {
             return;
         }
 
-        if (insertNodeUserId.equals(targetOuroborosNode.myself.id)) {
+        if (targetOuroborosNode.myself.equals(insertNodeUserId)) {
             client.systemConsole.pushErrorLine(typeErrorYourself(insertNodeUserId));
 
             return;
@@ -284,29 +269,20 @@ public class OuroborosNodeStack {
     }
 
     public void addNode(String targetMapUserId, String connectNodeUserId, String addNodeUserId, String flag) {
-        User targetMapUser = client.userStack.get(targetMapUserId);
+        User targetMapUser = client.userStack.test(targetMapUserId);
 
-        if (targetMapUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(targetMapUserId));
-
+        if (targetMapUser == null)
             return;
-        }
 
-        User connectNodeUser = client.userStack.get(connectNodeUserId);
+        User connectNodeUser = client.userStack.test(connectNodeUserId);
 
-        if (connectNodeUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(connectNodeUserId));
-
+        if (connectNodeUser == null)
             return;
-        }
 
-        User addNodeUser = client.userStack.get(addNodeUserId);
+        User addNodeUser = client.userStack.test(addNodeUserId);
 
-        if (addNodeUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(addNodeUserId));
-
+        if (addNodeUser == null)
             return;
-        }
 
         if (OuroborosNode.getFlagType(flag) != 3) {
             client.systemConsole.pushErrorLine("You can't specify any flag other than \"DUM\", \"WAI\", or \"REP\".");
@@ -322,7 +298,7 @@ public class OuroborosNodeStack {
             return;
         }
 
-        if (addNodeUserId.equals(targetOuroborosNode.myself.id)) {
+        if (targetOuroborosNode.myself.equals(addNodeUserId)) {
             client.systemConsole.pushErrorLine(typeErrorYourself(addNodeUserId));
 
             return;
@@ -335,29 +311,20 @@ public class OuroborosNodeStack {
     }
 
     public void replaceNode(String targetMapUserId, String targetNodeUserId, String replaceNodeUserId) {
-        User targetMapUser = client.userStack.get(targetMapUserId);
+        User targetMapUser = client.userStack.test(targetMapUserId);
 
-        if (targetMapUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(targetMapUserId));
-
+        if (targetMapUser == null)
             return;
-        }
 
-        User targetNodeUser = client.userStack.get(targetNodeUserId);
+        User targetNodeUser = client.userStack.test(targetNodeUserId);
 
-        if (targetNodeUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(targetNodeUserId));
-
+        if (targetNodeUser == null)
             return;
-        }
 
-        User convertNodeUser = client.userStack.get(replaceNodeUserId);
+        User convertNodeUser = client.userStack.test(replaceNodeUserId);
 
-        if (convertNodeUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(replaceNodeUserId));
-
+        if (convertNodeUser == null)
             return;
-        }
 
         OuroborosNode targetOuroborosNode = get(targetMapUser.id);
 
@@ -367,7 +334,7 @@ public class OuroborosNodeStack {
             return;
         }
 
-        if (replaceNodeUserId.equals(targetOuroborosNode.myself.id)) {
+        if (targetOuroborosNode.myself.equals(replaceNodeUserId)) {
             client.systemConsole.pushErrorLine(typeErrorYourself(replaceNodeUserId));
 
             return;
@@ -381,21 +348,15 @@ public class OuroborosNodeStack {
     }
 
     public void rejectNode(String targetMapUserId, String targetNodeUserId) {
-        User targetMapUser = client.userStack.get(targetMapUserId);
+        User targetMapUser = client.userStack.test(targetMapUserId);
 
-        if (targetMapUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(targetMapUserId));
-
+        if (targetMapUser == null)
             return;
-        }
 
-        User targetNodeUser = client.userStack.get(targetNodeUserId);
+        User targetNodeUser = client.userStack.test(targetNodeUserId);
 
-        if (targetNodeUser == null) {
-            client.systemConsole.pushErrorLine(typeErrorUnknownUser(targetNodeUserId));
-
+        if (targetNodeUser == null)
             return;
-        }
 
         OuroborosNode targetOuroborosNode = get(targetMapUser.id);
 
@@ -405,7 +366,7 @@ public class OuroborosNodeStack {
             return;
         }
 
-        if (targetNodeUserId.equals(targetOuroborosNode.myself.id) || targetNodeUserId.equals(targetOuroborosNode.target.id)) {
+        if (targetOuroborosNode.myself.equals(targetNodeUserId) || targetOuroborosNode.target.equals(targetNodeUserId)) {
             client.systemConsole.pushErrorLine("You can't specify the sender or recipient.");
 
             return;

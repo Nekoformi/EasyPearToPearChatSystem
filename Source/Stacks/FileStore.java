@@ -136,14 +136,12 @@ public class FileStore {
         User targetUser = client.userStack.get(targetUserId);
 
         if (targetUser != null) {
-            if (allowedUserList.stream().filter(user -> user.id.equals(targetUser.id)).findFirst().orElse(null) != null) {
+            if (allowedUserList.stream().filter(user -> user.equals(targetUser)).findFirst().orElse(null) != null) {
                 return true;
             } else {
                 return false;
             }
         } else {
-            client.systemConsole.pushErrorLine("The specified user (@" + targetUserId + ") does not exist.");
-
             return false;
         }
     }

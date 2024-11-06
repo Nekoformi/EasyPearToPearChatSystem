@@ -121,7 +121,7 @@ public class OuroborosNode {
         // public MapStructure(List<User> userList, String data, char userSplit, char itemSplit) {}
 
         public int getTargetIndex(User target, boolean searchSubBranch) {
-            if (target.id.equals(user.id)) {
+            if (target.equals(user)) {
                 return 0;
             } else if (next != null) {
                 int rec = -1;
@@ -241,7 +241,7 @@ public class OuroborosNode {
         public String getFlag(User user) {
             String res = null;
 
-            if (this.user.id.equals(user.id)) {
+            if (this.user.equals(user)) {
                 res = flag;
             } else if (next != null) {
                 for (MapStructure item : next) {
@@ -259,7 +259,7 @@ public class OuroborosNode {
         }
 
         public void setFlag(User user, String flag) {
-            if (this.user.id.equals(user.id)) {
+            if (this.user.equals(user)) {
                 this.flag = flag;
             } else if (next != null) {
                 for (MapStructure item : next)
@@ -318,7 +318,7 @@ public class OuroborosNode {
         }
 
         public void concat(MapStructure prop, boolean searchSubBranch) {
-            if (prop.user.id.equals(user.id)) {
+            if (prop.user.equals(user)) {
                 if (next == null)
                     next = new ArrayList<MapStructure>();
 
@@ -350,7 +350,7 @@ public class OuroborosNode {
         }
 
         public void concat(MapStructure prop, User target, boolean searchSubBranch) {
-            if (target.id.equals(user.id)) {
+            if (target.equals(user)) {
                 if (next == null)
                     next = new ArrayList<MapStructure>();
 
@@ -369,11 +369,11 @@ public class OuroborosNode {
             int res = 0;
 
             if (next != null) {
-                if (this.user.id.equals(connectBeforeNodeUser.id)) {
+                if (this.user.equals(connectBeforeNodeUser)) {
                     for (int i = 0; i < next.size(); i++) {
                         MapStructure rec = next.get(i);
 
-                        if (rec.user.id.equals(connectAfterNodeUser.id)) {
+                        if (rec.user.equals(connectAfterNodeUser)) {
                             MapStructure rem = new MapStructure(insertNodeUser, flag);
 
                             rem.next = Util.createExpandableList(rec);
@@ -395,7 +395,7 @@ public class OuroborosNode {
         public int add(User connectNodeUser, User addNodeUser, String flag) {
             int res = 0;
 
-            if (this.user.id.equals(connectNodeUser.id)) {
+            if (this.user.equals(connectNodeUser)) {
                 MapStructure rec = new MapStructure(addNodeUser, flag);
 
                 if (next != null) {
@@ -417,7 +417,7 @@ public class OuroborosNode {
         public int replace(User targetNodeUser, User replaceNodeUser) {
             int res = 0;
 
-            if (this.user.id.equals(targetNodeUser.id)) {
+            if (this.user.equals(targetNodeUser)) {
                 this.user = replaceNodeUser;
 
                 res++;
@@ -439,7 +439,7 @@ public class OuroborosNode {
 
                     res += rec.reject(targetNodeUser);
 
-                    if (rec.user.id.equals(targetNodeUser.id)) {
+                    if (rec.user.equals(targetNodeUser)) {
                         next.remove(rec);
 
                         if (rec.next != null)
@@ -566,7 +566,7 @@ public class OuroborosNode {
             if (userDataBuf.length != 2 || !("@" + userDataBuf[0]).matches(Util.USER_ID_REGEX) || !userDataBuf[1].matches(Util.ONN_FLAG_REGEX))
                 return null;
 
-            user = userList.stream().filter(user -> user.id.equals(userDataBuf[0])).findFirst().orElse(null);
+            user = userList.stream().filter(user -> user.equals(userDataBuf[0])).findFirst().orElse(null);
             flag = userDataBuf[1];
 
             if (user == null || flag == null)
@@ -674,7 +674,7 @@ public class OuroborosNode {
                 client.systemConsole.pushErrorLine("The sender index or recipient index is not set correctly.");
 
                 return 5;
-            } else if (post.id.equals(send.id)) {
+            } else if (post.equals(send)) {
                 client.systemConsole.pushErrorLine("Can't set yourself as the recipient.");
 
                 return 6;
@@ -684,7 +684,7 @@ public class OuroborosNode {
         }
 
         public int checkUserList(User targetUser) {
-            List<User> rec = map.stream().filter(user -> user.id.equals(targetUser.id)).collect(Collectors.toList());
+            List<User> rec = map.stream().filter(user -> user.equals(targetUser)).collect(Collectors.toList());
 
             switch (rec.size()) {
             case 0:
@@ -697,8 +697,7 @@ public class OuroborosNode {
         }
 
         List<User> filterList(List<User> userList) {
-            return userList.stream().filter(user -> (post == null || !user.id.equals(post.id)) && (send == null || !user.id.equals(send.id)))
-                    .collect(Collectors.toList());
+            return userList.stream().filter(user -> (post == null || !user.equals(post)) && (send == null || !user.equals(send))).collect(Collectors.toList());
         }
 
         void setDummy(List<User> dummy) {
@@ -748,8 +747,8 @@ public class OuroborosNode {
         }
 
         void setTargetIndex() {
-            postIndex = map.indexOf(map.stream().filter(user -> user.id.equals(post.id)).findFirst().orElse(null));
-            sendIndex = map.indexOf(map.stream().filter(user -> user.id.equals(send.id)).findFirst().orElse(null));
+            postIndex = map.indexOf(map.stream().filter(user -> user.equals(post)).findFirst().orElse(null));
+            sendIndex = map.indexOf(map.stream().filter(user -> user.equals(send)).findFirst().orElse(null));
         }
 
         void setTargetIndex(User post, User send) {

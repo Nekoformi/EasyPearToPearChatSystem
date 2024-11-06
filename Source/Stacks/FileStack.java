@@ -82,32 +82,40 @@ public class FileStack {
         return null;
     }
 
-    public FileStore getFileStore(String fileId) {
+    public FileStore testFileStore(String fileId) {
         FileStore res = fileStoreStack.stream().filter(item -> item.getFileId().equals(fileId)).findFirst().orElse(null);
 
         if (res != null) {
             return res;
         } else {
-            // client.systemConsole.pushErrorLine("The specified file (#" + fileId + ") does not exist.");
+            client.systemConsole.pushErrorLine("The specified file (#" + fileId + ") does not exist.");
+
+            return null;
+        }
+    }
+
+    public FileStore getFileStore(String fileId) {
+        return fileStoreStack.stream().filter(item -> item.getFileId().equals(fileId)).findFirst().orElse(null);
+    }
+
+    public FileCache testFileCache(String userId, String fileId) {
+        FileCache res = fileCacheStack.stream().filter(item -> item.getUserId().equals(userId) && item.getFileId().equals(fileId)).findFirst().orElse(null);
+
+        if (res != null) {
+            return res;
+        } else {
+            client.systemConsole.pushErrorLine("The specified file (#" + fileId + " by @" + userId + ") does not exist.");
 
             return null;
         }
     }
 
     public FileCache getFileCache(String userId, String fileId) {
-        FileCache res = fileCacheStack.stream().filter(item -> item.getUserId().equals(userId) && item.getFileId().equals(fileId)).findFirst().orElse(null);
-
-        if (res != null) {
-            return res;
-        } else {
-            // client.systemConsole.pushErrorLine("The specified file (#" + fileId + " by @" + userId + ") does not exist.");
-
-            return null;
-        }
+        return fileCacheStack.stream().filter(item -> item.getUserId().equals(userId) && item.getFileId().equals(fileId)).findFirst().orElse(null);
     }
 
     public void request(String userId, String fileId) {
-        FileCache fileCache = getFileCache(userId, fileId);
+        FileCache fileCache = testFileCache(userId, fileId);
 
         if (fileCache != null) {
             if (fileCache.prepareFileData()) {
@@ -115,8 +123,6 @@ public class FileStack {
 
                 requestFile(fileCache, -1);
             }
-        } else {
-            client.systemConsole.pushErrorLine("The specified file (#" + fileId + " by @" + userId + ") does not exist.");
         }
     }
 
@@ -190,14 +196,12 @@ public class FileStack {
     }
 
     public void free(String fileId) {
-        FileStore fileStore = getFileStore(fileId);
+        FileStore fileStore = testFileStore(fileId);
 
         if (fileStore != null) {
             fileStore.free();
 
             client.systemConsole.pushMainLine("The file (#" + fileId + ") was removed from the stock.");
-        } else {
-            client.systemConsole.pushErrorLine("The specified file (#" + fileId + ") does not exist.");
         }
     }
 

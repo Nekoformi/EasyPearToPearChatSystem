@@ -212,9 +212,9 @@ public class Client {
     }
 
     public void connectNode(String userId) {
-        User user = userStack.get(userId);
+        User user = userStack.test(userId);
 
-        if (user.node != null) {
+        if (user == null || user.node != null) {
             systemConsole.pushErrorLine("Already connected to the node: " + Util.getSocketInfoString(user.node.socket));
 
             return;
@@ -246,9 +246,9 @@ public class Client {
     }
 
     public void disconnectNode(String userId, boolean force) {
-        User user = userStack.get(userId);
+        User user = userStack.test(userId);
 
-        if (user.node == null) {
+        if (user == null || user.node == null) {
             systemConsole.pushErrorLine("Not connected to the node: " + user.display());
 
             return;

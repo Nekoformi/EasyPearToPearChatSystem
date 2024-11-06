@@ -17,7 +17,7 @@ public class GetClientAddress extends NetworkTask {
 
         String targetUserId = work.getStringData(1).substring(1);
 
-        if (myProfile.id.equals(targetUserId))
+        if (myProfile.equals(targetUserId))
             skipSend = true;
 
         return this;
@@ -63,13 +63,10 @@ public class GetClientAddress extends NetworkTask {
             return;
         }
 
-        User targetUser = client.userStack.get(targetUserId);
+        User targetUser = client.userStack.test(targetUserId);
 
-        if (targetUser == null) {
-            pushErrorLine("User does not exist.");
-
+        if (targetUser == null)
             return;
-        }
 
         SecretKey decryptedCommonKey = Util.decryptBase64ToCommonKeyWithRsaPublicKey(res.data[1], targetUser.publicKey);
         String decryptedUserAddress = Util.decryptBase64ToStringWithAesCommonKey(res.data[0], decryptedCommonKey);
@@ -92,7 +89,7 @@ public class GetClientAddress extends NetworkTask {
     }
 
     void responseOfOthers(String targetUserId) {
-        if (!myProfile.id.equals(targetUserId)) {
+        if (!myProfile.equals(targetUserId)) {
             NodeStore res = nodeStore.stream().filter(nodeStore -> !nodeStore.data[0].matches("EMP|DUP|OUT")).findFirst().orElse(null);
 
             if (res != null) {

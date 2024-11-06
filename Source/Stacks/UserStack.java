@@ -76,13 +76,10 @@ public class UserStack {
             return null;
         }
 
-        User currentUser = get(user.id);
+        User currentUser = test(user.id);
 
-        if (currentUser == null) {
-            client.systemConsole.pushErrorLine("The specified user (@" + user.id + ") does not exist.");
-
+        if (currentUser == null)
             return null;
-        }
 
         currentUser = currentUser.set(user.id, user.name, user.publicKey);
 
@@ -105,13 +102,10 @@ public class UserStack {
     }
 
     public synchronized User update(String id, String raw, boolean updateUserList) {
-        User user = get(id);
+        User user = test(id);
 
-        if (user == null) {
-            client.systemConsole.pushErrorLine("The specified user (@" + id + ") does not exist.");
-
+        if (user == null)
             return null;
-        }
 
         user = user.set(raw);
 
@@ -136,13 +130,10 @@ public class UserStack {
             return;
         }
 
-        User currentUser = get(user.id);
+        User currentUser = test(user.id);
 
-        if (currentUser == null) {
-            client.systemConsole.pushErrorLine("The specified user (@" + user.id + ") does not exist.");
-
+        if (currentUser == null)
             return;
-        }
 
         client.systemConsole.pushMainLine("Remove user profile: " + currentUser.display());
 
@@ -153,13 +144,10 @@ public class UserStack {
     }
 
     public synchronized void remove(String id, boolean updateUserList) {
-        User user = get(id);
+        User user = test(id);
 
-        if (user == null) {
-            client.systemConsole.pushErrorLine("The specified user (@" + id + ") does not exist.");
-
+        if (user == null)
             return;
-        }
 
         client.systemConsole.pushMainLine("Remove user profile: " + user.display());
 
@@ -169,16 +157,20 @@ public class UserStack {
             updateUserList();
     }
 
+    public User test(String id) {
+        User res = get(id);
+
+        if (res == null)
+            client.systemConsole.pushErrorLine("The specified user (@" + id + ") does not exist.");
+
+        return res;
+    }
+
     public User get(String id) {
-        if (myProfile.id.equals(id)) {
+        if (myProfile.equals(id)) {
             return myProfile;
         } else {
-            User res = userStack.stream().filter(user -> user.id.equals(id)).findFirst().orElse(null);
-
-            // if (res == null)
-            // client.systemConsole.pushErrorLine("The specified user (@" + id + ") does not exist.");
-
-            return res;
+            return userStack.stream().filter(user -> user.equals(id)).findFirst().orElse(null);
         }
     }
 

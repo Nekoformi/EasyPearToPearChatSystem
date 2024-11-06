@@ -19,7 +19,7 @@ public class PostUserProfile extends NetworkTask {
         String userId = work.getStringData(1).substring(1);
         String targetUserId = work.getStringData(3).substring(1);
 
-        if (!myProfile.id.equals(targetUserId))
+        if (!myProfile.equals(targetUserId))
             return this;
 
         skipSend = true;
