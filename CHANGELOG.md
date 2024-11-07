@@ -4,6 +4,7 @@
 
 - Add feature: Send binary data (Normal / Ouroboros Node Network)
 - Add feature: Send and receive divided messages
+- Add feature: Kick user with duplicate ID
 - Add feature: Set force string communication from boot options
 - Optimize network task
 

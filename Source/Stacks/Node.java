@@ -37,6 +37,8 @@ public class Node {
     BufferedReader stringReader;
     PrintWriter stringWriter;
 
+    public boolean isError = false;
+
     NodeReceiver nodeReceiver;
 
     public Node(Client client, Socket socket) {

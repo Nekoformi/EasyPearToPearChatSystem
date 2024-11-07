@@ -3,6 +3,7 @@ package Source.Tasks;
 import Source.Client;
 import Source.Stacks.Node;
 import Source.Stacks.Task;
+import Source.Stacks.User;
 import Source.Utils.Message;
 
 public class ConnectClient extends Task {
@@ -14,11 +15,22 @@ public class ConnectClient extends Task {
 
     public void run() {
         if (node != null && node.user == null) {
-            node.user = client.userStack.add(work.getStringData(0), false);
+            User newUser = new User(client, work.getStringData(0));
 
-            node.user.setNode(node);
+            if (client.userStack.get(newUser.id) == null) {
+                node.user = client.userStack.add(newUser, false);
 
-            client.userStack.updateUserList();
+                node.user.setNode(node);
+
+                client.userStack.updateUserList();
+            } else {
+                node.isError = true;
+                node.user = newUser;
+
+                node.closeNode();
+
+                client.systemConsole.pushErrorLine("The user with a duplicate ID (@" + newUser.id + ") attempted to join.");
+            }
         }
 
         done("!");

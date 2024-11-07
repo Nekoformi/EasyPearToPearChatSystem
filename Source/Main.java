@@ -12,6 +12,7 @@ public class Main {
 
     public static void main(String[] argv) {
         String name = null;
+        String id = null;
 
         int x = 0;
         int y = 0;
@@ -164,6 +165,16 @@ public class Main {
                     Console.DEBUG_LOG = true;
 
                     break;
+                case "debug-user-name":
+                    if (Argument.check(item, Util.TYPE_STRING))
+                        name = item.content;
+
+                    break;
+                case "debug-user-id":
+                    if (Argument.check(item, Util.TYPE_USER_ID))
+                        id = item.content.substring(1);
+
+                    break;
                 default:
                     System.err.println("The argument \"" + item.name + "\" is a non-existent option.");
 
@@ -172,7 +183,7 @@ public class Main {
             }
         }
 
-        Client client = new Client(name);
+        Client client = new Client(name, id);
 
         FlatDarculaLaf.setup();
 

@@ -66,6 +66,10 @@ public class Client {
         userStack.myProfile.set(null, name, null);
     }
 
+    public Client(String name, String id) {
+        userStack.myProfile.set(id, name, null);
+    }
+
     public void createNetwork(int listeningPort) {
         if (nodeListener != null) {
             systemConsole.pushErrorLine("If you want to join another network, you need to leave current network using /leave");
