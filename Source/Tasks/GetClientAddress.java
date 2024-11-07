@@ -17,6 +17,8 @@ public class GetClientAddress extends NetworkTask {
 
         String targetUserId = work.getStringData(1).substring(1);
 
+        setSendUserIfNodeExist(targetUserId);
+
         if (myProfile.equals(targetUserId))
             skipSend = true;
 

@@ -12,13 +12,12 @@ public class RequestChatFile extends NetworkTask {
 
         setProperties(Integer.parseInt(work.getStringData(0)), 10, "req-cf", "rec-cf");
 
-        if (isOriginalTask())
-            return this;
-
         String userId = work.getStringData(1).substring(1);
         String targetUserId = work.getStringData(2).substring(1);
 
-        if (!myProfile.equals(targetUserId))
+        setSendUserIfNodeExist(targetUserId);
+
+        if (isOriginalTask() || !myProfile.equals(targetUserId))
             return this;
 
         skipSend = true;

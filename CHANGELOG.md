@@ -5,6 +5,7 @@
 - Add feature: Send binary data (Normal / Ouroboros Node Network)
 - Add feature: Send and receive divided messages
 - Add feature: Set force string communication from boot options
+- Optimize network task
 
 ## E=CS 1.2
 

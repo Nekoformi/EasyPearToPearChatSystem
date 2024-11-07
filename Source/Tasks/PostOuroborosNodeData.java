@@ -22,13 +22,12 @@ public class PostOuroborosNodeData extends NetworkTask {
     void setFromString() {
         setProperties(Integer.parseInt(work.getStringData(0)), 10, "pst-on", "rec-on");
 
-        if (isOriginalTask())
-            return;
-
         String userId = work.getStringData(1).substring(1);
         String targetUserId = work.getStringData(2).substring(1);
 
-        if (!myProfile.equals(targetUserId))
+        setSendUserIfNodeExist(targetUserId);
+
+        if (isOriginalTask() || !myProfile.equals(targetUserId))
             return;
 
         skipSend = true;
@@ -51,9 +50,6 @@ public class PostOuroborosNodeData extends NetworkTask {
 
         setProperties(timeout, 10, "pst-on", "rec-on");
 
-        if (isOriginalTask())
-            return;
-
         byte[] _userId = Util.getNextDataOnSize(data, 16);
         data = Util.clearByteArrayOnSize(data, 16);
         String userId = Util.convertByteArrayToHexString(_userId);
@@ -62,7 +58,9 @@ public class PostOuroborosNodeData extends NetworkTask {
         data = Util.clearByteArrayOnSize(data, 16);
         String targetUserId = Util.convertByteArrayToHexString(_targetUserId);
 
-        if (!myProfile.equals(targetUserId))
+        setSendUserIfNodeExist(targetUserId);
+
+        if (isOriginalTask() || !myProfile.equals(targetUserId))
             return;
 
         skipSend = true;

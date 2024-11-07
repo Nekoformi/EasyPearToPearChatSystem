@@ -192,6 +192,29 @@ public class NetworkTask extends Task {
         return node == null;
     }
 
+    void setSendUserIfNodeExist(String userId) {
+        User user = client.userStack.test(userId);
+
+        if (user != null)
+            setSendUserIfNodeExist(user);
+    }
+
+    void setSendUserIfNodeExist(User user) {
+        setSendUserIfNodeExist(Util.createExpandableList(user));
+    }
+
+    void setSendUserIfNodeExist(List<User> userList) {
+        List<Node> newNodeStack = new ArrayList<Node>();
+
+        userList.stream().forEach(user -> {
+            if (user.node != null)
+                newNodeStack.add(user.node);
+        });
+
+        if (newNodeStack.size() > 0)
+            nodeStack = newNodeStack;
+    }
+
     void pushErrorLine(String text) {
         client.systemConsole.pushErrorLine("Task \"" + requestCommand + "\" ~ \"" + returnCommand + "\" (#" + work.id + "): " + text);
     }
