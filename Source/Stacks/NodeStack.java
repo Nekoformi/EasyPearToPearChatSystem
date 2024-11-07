@@ -39,4 +39,23 @@ public class NodeStack {
 
         return client.taskStack.run(new GetNodeList().set(client, null, message));
     }
+
+    public void setNodeDelay(String userId, int delay) {
+        User user = client.userStack.test(userId);
+
+        if (user != null) {
+            if (user.node != null) {
+                if (delay < Integer.parseInt(Client.TIMEOUT)) {
+                    user.node.delay = delay;
+
+                    client.systemConsole
+                            .pushMainLine("Communication with user (@" + userId + ") will be delayed by " + String.valueOf(delay) + " milliseconds.");
+                } else {
+                    client.systemConsole.pushErrorLine("You can't set a delay greater than the timeout (" + Client.TIMEOUT + " milliseconds).");
+                }
+            } else {
+                client.systemConsole.pushErrorLine("User (@" + userId + ") is not connected as a node.");
+            }
+        }
+    }
 }

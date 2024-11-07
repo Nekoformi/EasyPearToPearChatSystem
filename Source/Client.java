@@ -394,6 +394,11 @@ public class Client {
                 disconnectNode(message.getStringData(0).substring(1), false);
 
             break;
+        case "delay":
+            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_UNSIGNED_INTEGER))
+                nodeStack.setNodeDelay(message.getStringData(0).substring(1), Integer.parseInt(message.getStringData(1)));
+
+            break;
         case "create-on":
         case "con": {
             int dataLength = message.getStringData().length;

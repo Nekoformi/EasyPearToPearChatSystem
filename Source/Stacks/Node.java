@@ -41,6 +41,8 @@ public class Node {
 
     NodeReceiver nodeReceiver;
 
+    public int delay = 0;
+
     public Node(Client client, Socket socket) {
         this.client = client;
         this.socket = socket;

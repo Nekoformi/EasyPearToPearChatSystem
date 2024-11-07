@@ -3,6 +3,7 @@
 ## E=CS 1.3
 
 - Add feature: Send binary data (Normal / Ouroboros Node Network)
+- Add command: "delay"
 - Add feature: Send and receive divided messages
 - Add feature: Kick user with duplicate ID
 - Add feature: Set force string communication from boot options

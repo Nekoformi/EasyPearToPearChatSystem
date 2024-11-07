@@ -83,6 +83,7 @@ Hello world!
 | `cll` `clear-log` | `<なし>` | ログ履歴を削除します。 |
 | `connect` | `<ユーザーID>` | ノードに接続します。 |
 | `disconnect` | `<ユーザーID>` | ノードを切断します。 |
+| `delay` | `<ユーザーID>` `<ミリ秒>` | ノードとの通信を（一方向に）遅延させます。このコマンドはテスト向けです。 |
 | `con` `create-on` | (`<ユーザーID>` `<ダミーの数>`) \| (`<マップ構造>`) | Ouroboros Node Networkの経路を作成します。 |
 | `son` `show-on` | `<ユーザーID>` | Ouroboros Node Networkの経路を表示します。 |
 | `ron` `remove-on` | `<ユーザーID>` | Ouroboros Node Networkの経路を削除します。 |

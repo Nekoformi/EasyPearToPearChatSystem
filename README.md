@@ -83,6 +83,7 @@ Hello world!
 | `cll` `clear-log` | `<VOID>` | Clear log history. |
 | `connect` | `<USER ID>` | Connect the node. |
 | `disconnect` | `<USER ID>` | Disconnect the node. |
+| `delay` | `<USER ID>` `<MILLISECONDS>` | Delay communication with the node (in one direction). This command is intended for testing. |
 | `con` `create-on` | (`<USER ID>` `<DUMMY NUM>`) \| (`<MAP STRUCTURE>`) | Create a map of the Ouroboros Node Network. |
 | `son` `show-on` | `<USER ID>` | Show a map of the Ouroboros Node Network. |
 | `ron` `remove-on` | `<USER ID>` | Remove a map of the Ouroboros Node Network from a string. |

@@ -59,7 +59,23 @@ public class NetworkTask extends Task {
             nodeStack.forEach(node -> {
                 nodeStore.add(new NodeStore(node));
 
-                send(node);
+                if (node.delay > 0) {
+                    new Thread(() -> {
+                        synchronized (this) {
+                            try {
+                                wait(node.delay);
+                            } catch (InterruptedException e) {
+                                // None
+                            } catch (Exception e) {
+                                client.systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Something is wrong."));
+                            }
+
+                            send(node);
+                        }
+                    }).start();
+                } else {
+                    send(node);
+                }
             });
 
             stand();
