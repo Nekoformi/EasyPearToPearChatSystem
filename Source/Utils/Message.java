@@ -142,6 +142,14 @@ public class Message {
         }
     }
 
+    public int getStringDataLength() {
+        if (dataString != null) {
+            return dataString.length;
+        } else {
+            return -1;
+        }
+    }
+
     public Message set(byte[] message, boolean needTaskId) {
         if (message.length < 18) {
             pushErrorLine("Invalid message.");

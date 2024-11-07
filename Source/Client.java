@@ -401,7 +401,7 @@ public class Client {
             break;
         case "create-on":
         case "con": {
-            int dataLength = message.getStringData().length;
+            int dataLength = message.getStringDataLength();
 
             switch (dataLength) {
             case 1:
@@ -423,7 +423,7 @@ public class Client {
             break;
         case "edit-on":
         case "eon": {
-            int dataLength = message.getStringData().length;
+            int dataLength = message.getStringDataLength();
 
             switch (dataLength) {
             case 2:
