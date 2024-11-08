@@ -41,6 +41,7 @@ $ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -ssl -de
 | `join` | `<ADDRESS>:<PORT>,<LISTENING PORT>` | - | Join the network at startup. |
 | `ssl` | `<VOID>` | false | Use SSL (Secure Socket Layer). However, note that the standard state has nonsense on users who know the protocol. |
 | `debug` | `<VOID>` | false | Outputs log to the console. |
+| `debug-color` | `<VOID>` | false | Colorizes log to the console. Don't use this option if you redirect logs to a file. |
 
 #### Options enabled in SSL mode
 

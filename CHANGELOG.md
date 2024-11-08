@@ -7,6 +7,7 @@
 - Add feature: Send and receive divided messages
 - Add feature: Kick user with duplicate ID
 - Add feature: Set force string communication from boot options
+- Add feature: Set debug color from boot options
 - Optimize network task
 
 ## E=CS 1.2

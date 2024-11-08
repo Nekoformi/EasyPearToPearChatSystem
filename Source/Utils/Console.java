@@ -18,6 +18,7 @@ public class Console {
 
     public static int GAP = 5;
     public static boolean DEBUG_LOG = false;
+    public static boolean DEBUG_LOG_COLOR = false;
 
     public Console() {}
 
@@ -134,6 +135,15 @@ public class Console {
         updateTextPane();
     }
 
+    void pushLineToConsole(String text, String terminalLabel, String terminalColor) {
+        if (DEBUG_LOG_COLOR) {
+            terminalLabel = terminalColor + terminalLabel + Util.TERMINAL_END;
+            text = terminalColor + text + Util.TERMINAL_END;
+        }
+
+        System.out.println(getCurrentTimeDisplay() + " [" + terminalLabel + "] " + text);
+    }
+
     SimpleAttributeSet createColorTextAttribute(Color color) {
         SimpleAttributeSet attribute = new SimpleAttributeSet();
 
@@ -172,11 +182,11 @@ public class Console {
             SwingUtilities.invokeLater(() -> pushLineToTextPane(text, new Color(128, 255, 128)));
 
         if (DEBUG_LOG)
-            System.out.println(getCurrentTimeDisplay() + " " + Util.TERMINAL_GREEN + text + Util.TERMINAL_END);
+            pushLineToConsole(text, "MSG", Util.TERMINAL_GREEN);
     }
 
     public synchronized void pushMainLine(String text, String[] commandLabel, String[] commandContent) {
-        pushActionLine(text, new Color(128, 255, 128), Util.TERMINAL_GREEN, commandLabel, commandContent);
+        pushActionLine(text, new Color(128, 255, 128), "MSG", Util.TERMINAL_GREEN, commandLabel, commandContent);
     }
 
     public synchronized void pushSubLine(String text) {
@@ -187,7 +197,7 @@ public class Console {
             SwingUtilities.invokeLater(() -> pushLineToTextPane(text, new Color(128, 128, 128)));
 
         if (DEBUG_LOG)
-            System.out.println(getCurrentTimeDisplay() + " " + Util.TERMINAL_GRAY + text + Util.TERMINAL_END);
+            pushLineToConsole(text, "SYS", Util.TERMINAL_GRAY);
     }
 
     public synchronized void pushWarningLine(String text) {
@@ -198,7 +208,7 @@ public class Console {
             SwingUtilities.invokeLater(() -> pushLineToTextPane(text, new Color(255, 255, 128)));
 
         if (DEBUG_LOG)
-            System.out.println(getCurrentTimeDisplay() + " " + Util.TERMINAL_YELLOW + text + Util.TERMINAL_END);
+            pushLineToConsole(text, "WNG", Util.TERMINAL_YELLOW);
     }
 
     public synchronized void pushErrorLine(String text) {
@@ -209,10 +219,11 @@ public class Console {
             SwingUtilities.invokeLater(() -> pushLineToTextPane(text, new Color(255, 128, 128)));
 
         if (DEBUG_LOG)
-            System.err.println(getCurrentTimeDisplay() + " " + Util.TERMINAL_RED + text + Util.TERMINAL_END);
+            pushLineToConsole(text, "ERR", Util.TERMINAL_RED);
     }
 
-    public synchronized void pushActionLine(String text, Color color, String terminalColor, String[] commandLabel, String[] commandContent) {
+    public synchronized void pushActionLine(String text, Color color, String terminalLabel, String terminalColor, String[] commandLabel,
+            String[] commandContent) {
         String[] textArray = text.split("\\$\\$\\$", -1);
         StringBuffer textPlain = new StringBuffer(textArray[0]);
 
@@ -245,7 +256,7 @@ public class Console {
         }
 
         if (DEBUG_LOG)
-            System.out.println(getCurrentTimeDisplay() + " " + terminalColor + textPlain.toString() + Util.TERMINAL_END);
+            pushLineToConsole(textPlain.toString(), terminalLabel, terminalColor);
     }
 
     public synchronized void clearAllLine() {
