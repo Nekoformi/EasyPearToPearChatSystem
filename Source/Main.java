@@ -103,6 +103,11 @@ public class Main {
                         Client.MESSAGE_DATA_PART_SIZE = Integer.parseUnsignedInt(item.content);
 
                     break;
+                case "file-size":
+                    if (Argument.check(item, Util.TYPE_UNSIGNED_INTEGER))
+                        Client.FILE_DATA_PART_SIZE = Integer.parseUnsignedInt(item.content);
+
+                    break;
                 case "create":
                     if (Argument.check(item, Util.TYPE_IP_PORT))
                         listeningPort = item.content;

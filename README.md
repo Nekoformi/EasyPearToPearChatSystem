@@ -37,6 +37,7 @@ $ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -ssl -de
 | `d` `download` | `<FOLDER PATH>` | ./ | Set the folder to save downloaded files. |
 | `force-string` | `<VOID>` | false | The content to be sent in binary will be forcibly transmitted as a string. This option may be useful when clients with different operating systems fail to communicate. |
 | `message-size` | `<UNSIGNED INTEGER>` | 4096 | Set the maximum packet size (in byte). This option may be useful when clients with different operating systems fail to communicate. |
+| `file-size` | `<UNSIGNED INTEGER>` | 1048576 | Set the split size (in byte) of the file to be sent. The larger the value, the more RAM required for the recipient. |
 | `create` | `<LISTENING PORT>` | - | Create a network at startup. |
 | `join` | `<ADDRESS>:<PORT>,<LISTENING PORT>` | - | Join the network at startup. |
 | `ssl` | `<VOID>` | false | Use SSL (Secure Socket Layer). However, note that the standard state has nonsense on users who know the protocol. |
@@ -141,7 +142,3 @@ keytool -import \
 - Add function: to send private message.
 - Add function: to enhance network security with password.
 - Add function: to add clients to blacklist.
-
-## To don't list
-
-- Solve problem: Continuous communication sometimes cuts off ... why?

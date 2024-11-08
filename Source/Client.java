@@ -58,7 +58,7 @@ public class Client {
     public static boolean FORCE_STRING_COMMUNICATION = false;
     public static int MESSAGE_DATA_PART_SIZE = 4096;
     public static int PACKET_DATA_PART_SIZE = 1024;
-    public static int FILE_DATA_PART_SIZE = 65536;
+    public static int FILE_DATA_PART_SIZE = 1048576; // 1 MB
 
     public Client() {}
 
