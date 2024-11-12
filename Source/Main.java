@@ -8,7 +8,7 @@ import Source.Utils.Util;
 import com.formdev.flatlaf.FlatDarculaLaf;
 
 public class Main {
-    public static final String VERSION = "1.3";
+    public static final String VERSION = "1.4 (DEV)";
 
     public static void main(String[] argv) {
         String name = null;

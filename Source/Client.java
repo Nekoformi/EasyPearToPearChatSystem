@@ -499,7 +499,7 @@ public class Client {
 
                 String chatMessage = message.join(1).replaceAll("\\\\n", "\n");
 
-                chatConsole.pushMainLine(OuroborosNodeStack.typeChatMessage(rec, chatMessage));
+                chatConsole.pushMainLine(OuroborosNodeStack.typeChatMessage(rec, chatMessage, false));
             }
 
             break;
@@ -513,7 +513,7 @@ public class Client {
 
                 String chatMessage = "Start sending the file: " + Paths.get(message.join(1)).getFileName().toString();
 
-                chatConsole.pushSubLine(OuroborosNodeStack.typeChatMessage(rec, chatMessage));
+                chatConsole.pushSubLine(OuroborosNodeStack.typeChatMessage(rec, chatMessage, false));
             }
 
             break;

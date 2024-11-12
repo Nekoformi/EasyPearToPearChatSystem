@@ -1,5 +1,13 @@
 # Change log
 
+## E=CS 1.4
+
+```
+Work in progress...
+```
+
+- Fix feature: Ouroboros Node Network
+
 ## E=CS 1.3
 
 ```

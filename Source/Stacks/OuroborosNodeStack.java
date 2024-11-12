@@ -403,7 +403,7 @@ public class OuroborosNodeStack {
             return null;
         }
 
-        FileStore fileStore = client.fileStack.addPrivateFileStore(filePath, ouroborosNode.target, OuroborosNode.MAX_MESSAGE_DATA_SIZE - (16 + 4 + 4));
+        FileStore fileStore = client.fileStack.addPrivateFileStore(filePath, ouroborosNode.target, ouroborosNode.calcMaximumDataSize() - (16 + 4 + 4));
 
         if (fileStore == null) {
             client.systemConsole.pushErrorLine("Failed to prepare file.");
@@ -513,7 +513,7 @@ public class OuroborosNodeStack {
                     if (type == OuroborosNode.MESSAGE_TYPE_STRING) {
                         String chatMessage = Util.convertByteArrayToString(message).replaceAll("\\\\n", "\n");
 
-                        client.chatConsole.pushMainLine(typeChatMessage(rem, chatMessage));
+                    client.chatConsole.pushMainLine(typeChatMessage(rem, chatMessage, true));
 
                         processData(rem.createOuroborosFinishData(messageId, messageSize), true);
                     } else {
@@ -662,7 +662,7 @@ public class OuroborosNodeStack {
                 int rec = fileCache.setSumPart(fileSumPart);
 
                 if (rec > -1) {
-                    client.chatConsole.pushSubLine(typeChatMessage(ouroborosNode, "Start receiving the file: " + fileName));
+                    client.chatConsole.pushSubLine(typeChatMessage(ouroborosNode, "Start receiving the file: " + fileName, true));
 
                     return Util.concatByteArray(_fileId, Util.convertIntToByteArray(0));
                 }
@@ -673,16 +673,16 @@ public class OuroborosNodeStack {
             if (rec > -1) {
                 return Util.concatByteArray(_fileId, Util.convertIntToByteArray(rec));
             } else if (rec == -1) {
-                client.chatConsole.pushSubLine(typeChatMessage(ouroborosNode, "Finish receiving the file: " + fileCache.getFileName()));
+                client.chatConsole.pushSubLine(typeChatMessage(ouroborosNode, "Finish receiving the file: " + fileCache.getFileName(), true));
 
                 return Util.concatByteArray(_fileId, Util.convertIntToByteArray(-2));
             }
         }
 
         if (fileCache == null) {
-            client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "Failed to receive file."));
+            client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "Failed to receive file.", true));
         } else {
-            client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "Failed to receive file: " + fileCache.getFileName()));
+            client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "Failed to receive file: " + fileCache.getFileName(), true));
         }
 
         return null;
@@ -702,7 +702,7 @@ public class OuroborosNodeStack {
         byte[] fileData = client.fileStack.read(userId, fileId, filePartNo);
 
         if (fileData == null) {
-            client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "Failed to send file."));
+            client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "Failed to send file.", false));
 
             return null;
         }
@@ -711,9 +711,9 @@ public class OuroborosNodeStack {
             FileStore fileStore = client.fileStack.getFileStore(fileId);
 
             if (fileStore != null) {
-                client.chatConsole.pushSubLine(typeChatMessage(ouroborosNode, "Finish sending the file: " + fileStore.getFileName()));
+                client.chatConsole.pushSubLine(typeChatMessage(ouroborosNode, "Finish sending the file: " + fileStore.getFileName(), false));
             } else {
-                client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "This message should not appear ... why?"));
+                client.chatConsole.pushErrorLine(typeChatMessage(ouroborosNode, "This message should not appear ... why?", false));
             }
 
             return null;
@@ -779,9 +779,9 @@ public class OuroborosNodeStack {
         return client.taskStack.run(new PostOuroborosNodeData().set(client, null, message), delay);
     }
 
-    public static String typeChatMessage(OuroborosNode ouroborosNode, String message) {
-        String postUserName = ouroborosNode.target.name;
-        String sendUserName = ouroborosNode.myself.name;
+    public static String typeChatMessage(OuroborosNode ouroborosNode, String message, boolean swap) {
+        String postUserName = swap ? ouroborosNode.target.name : ouroborosNode.myself.name;
+        String sendUserName = swap ? ouroborosNode.myself.name : ouroborosNode.target.name;
 
         return Client.getCurrentTimeDisplay() + postUserName + " → " + sendUserName + " [Private Message / Send with ONN]:\n" + message;
     }

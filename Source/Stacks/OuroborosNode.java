@@ -1065,6 +1065,16 @@ public class OuroborosNode {
         return messageStore.stream().filter(item -> item.equals(messageId)).findFirst().orElse(null) == null;
     }
 
+    public int calcMaximumDataSize() {
+        MapStructure targetFinalMaximumMapStructure = getTargetFinalMaximumMapStructure(map.getMapStructure());
+
+        List<Integer> testNoiseStore = generateNoiseStore(targetFinalMaximumMapStructure, false);
+
+        int testMessageSize = calcOuroborosDataSize(0, targetFinalMaximumMapStructure, testNoiseStore);
+
+        return MAX_MESSAGE_DATA_SIZE - testMessageSize;
+    }
+
     public byte[] createOuroborosData(String messageData) {
         byte[] messageId = Util.generateNoiseByte(16);
 
@@ -1089,14 +1099,14 @@ public class OuroborosNode {
         byte[] messageData = Util.convertStringToByteArray(FLAG_NAME_ACKNOWLEDGE);
         MapStructure mapStructure = map.getMapStructureAddCircleTail(FLAG_NAME_ACKNOWLEDGE);
 
-        return createOuroborosData(messageId, messageSize, messageData, MESSAGE_TYPE_ACKNOWLEDGE, mapStructure, false);
+        return createOuroborosData(messageId, messageSize, messageData, MESSAGE_TYPE_ACKNOWLEDGE, mapStructure, true);
     }
 
     public byte[] createOuroborosFinishData(byte[] messageId, byte[] messageSize) {
         byte[] messageData = Util.convertStringToByteArray(FLAG_NAME_FINISH);
         MapStructure mapStructure = map.getMapStructureAddCircleTail();
 
-        return createOuroborosData(messageId, messageSize, messageData, MESSAGE_TYPE_FINISH, mapStructure, false);
+        return createOuroborosData(messageId, messageSize, messageData, MESSAGE_TYPE_FINISH, mapStructure, true);
     }
 
     public byte[] createOuroborosData(byte[] messageId, byte[] messageData, byte type) {
@@ -1104,7 +1114,7 @@ public class OuroborosNode {
     }
 
     public byte[] createOuroborosData(byte[] messageId, byte[] messageSize, String messageData) {
-        return createOuroborosData(messageId, messageSize, Util.convertStringToByteArray(messageData), MESSAGE_TYPE_STRING, map.getMapStructure(), false);
+        return createOuroborosData(messageId, messageSize, Util.convertStringToByteArray(messageData), MESSAGE_TYPE_STRING);
     }
 
     public byte[] createOuroborosData(byte[] messageId, byte[] messageSize, byte[] messageData, byte type) {
@@ -1112,16 +1122,20 @@ public class OuroborosNode {
     }
 
     public byte[] createOuroborosData(byte[] messageId, byte[] messageData, byte type, MapStructure mapStructure) {
-        List<Integer> noiseStore = generateSpaciousNoiseStore(messageData, mapStructure);
+        List<Integer> noiseStore = generateNoiseStore(messageData.length, MAX_MESSAGE_DATA_SIZE, mapStructure, true);
         byte[] messageSize = Util.convertIntToByteArray(calcOuroborosDataSize(messageData, mapStructure, new ArrayList<Integer>(noiseStore)));
 
         return createOuroborosData(messageId, messageSize, messageData, type, mapStructure, noiseStore);
     }
 
     public byte[] createOuroborosData(byte[] messageId, byte[] messageSize, byte[] messageData, byte type, MapStructure mapStructure, boolean isFinalData) {
-        List<Integer> noiseStore = generateNoiseStore(messageData.length, Util.convertByteArrayToInt(messageSize), mapStructure, isFinalData);
+        List<Integer> noiseStore = generateNoiseStore(messageData.length, Util.convertByteArrayToInt(messageSize), mapStructure, !isFinalData);
 
-        return createOuroborosData(messageId, messageSize, messageData, type, mapStructure, noiseStore);
+        if (noiseStore != null) {
+            return createOuroborosData(messageId, messageSize, messageData, type, mapStructure, noiseStore);
+        } else {
+            return null;
+        }
     }
 
     List<Integer> generateSpaciousNoiseStore(byte[] messageData, MapStructure mapStructure) {
@@ -1180,6 +1194,9 @@ public class OuroborosNode {
         int minNoiseSize = DEFAULT_PROPERTY_SIZE * 2;
         int maxNoiseSize = sumNoiseSize / storeCount;
         int setNoiseSize = 0;
+
+        if (minNoiseSize > maxNoiseSize)
+            return null;
 
         for (int i = 0; i < storeCount; i++) {
             int buf = Util.generateRandomInt(random, minNoiseSize, maxNoiseSize);
@@ -1463,7 +1480,7 @@ public class OuroborosNode {
     }
 
     int calcOuroborosDataLayerSize1C(int dataSize, int noiseSize) {
-        return 16 + 4 + 1 + 1 + 4 + dataSize + noiseSize;
+        return 16 + 4 + 1 + 1 + 4 + noiseSize;
     }
 
     public byte[] createOuroborosSendData(byte[] messageSize, byte[] nextCommonKey, byte[] nextMessage, RSAPublicKey nextPublicKey) {
