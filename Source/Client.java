@@ -291,251 +291,255 @@ public class Client {
         if (message == null)
             return;
 
-        switch (message.command) {
-        case "create":
-        case "c":
-            if (message.check(0, Util.TYPE_IP_PORT))
-                createNetwork(Integer.parseInt(message.getStringData(0)));
+        try {
+            switch (message.command) {
+            case "create":
+            case "c":
+                if (message.check(0, Util.TYPE_IP_PORT))
+                    createNetwork(Integer.parseInt(message.getStringData(0)));
 
-            break;
-        case "join":
-        case "j":
-            if (message.check(0, Util.TYPE_IP_ADDRESS_PORT) && message.check(1, Util.TYPE_IP_PORT)) {
-                String[] buf = message.getStringData(0).split(":");
+                break;
+            case "join":
+            case "j":
+                if (message.check(0, Util.TYPE_IP_ADDRESS_PORT) && message.check(1, Util.TYPE_IP_PORT)) {
+                    String[] buf = message.getStringData(0).split(":");
 
-                joinNetwork(buf[0], Integer.parseInt(buf[1]), Integer.parseInt(message.getStringData(1)));
-            }
+                    joinNetwork(buf[0], Integer.parseInt(buf[1]), Integer.parseInt(message.getStringData(1)));
+                }
 
-            break;
-        case "leave":
-        case "l":
-            leaveNetwork();
+                break;
+            case "leave":
+            case "l":
+                leaveNetwork();
 
-            break;
-        case "name":
-        case "n":
-            if (message.check(0, Util.TYPE_STRING)) {
-                userStack.setMyName(message.join(0));
+                break;
+            case "name":
+            case "n":
+                if (message.check(0, Util.TYPE_STRING)) {
+                    userStack.setMyName(message.join(0));
 
-                systemConsole.pushMainLine("Hello " + userStack.myProfile.name + "!");
-            }
+                    systemConsole.pushMainLine("Hello " + userStack.myProfile.name + "!");
+                }
 
-            break;
-        case "message":
-        case "m":
-            if (message.check(0, Util.TYPE_STRING))
-                postChatMessage(message.join(0));
-
-            break;
-        case "file":
-        case "f":
-            if (message.check(0, Util.TYPE_STRING))
-                fileStack.addPublicFileStore(message.join(0));
-
-            break;
-        case "file-request":
-        case "fr":
-            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_FILE_ID))
-                fileStack.request(message.getStringData(0).substring(1), message.getStringData(1).substring(1));
-
-            break;
-        case "file-free":
-        case "ff":
-            if (message.check(0, Util.TYPE_FILE_ID))
-                fileStack.free(message.getStringData(0).substring(1));
-
-            break;
-        case "update":
-        case "u":
-            userStack.getUserList();
-
-            break;
-        case "list":
-        case "ls":
-            userStack.displayUser();
-
-            break;
-        case "list-key":
-        case "lsk":
-            userStack.displayUserPublicKey();
-
-            break;
-        case "clear-chat":
-        case "clc":
-            chatConsole.clearAllLine();
-
-            systemConsole.pushSubLine("Cleared chat history.");
-
-            break;
-        case "clear-log":
-        case "cll":
-            systemConsole.clearAllLine();
-
-            systemConsole.pushSubLine("Cleared log history.");
-
-            break;
-        case "clear":
-        case "cls":
-            chatConsole.clearAllLine();
-            systemConsole.clearAllLine();
-
-            systemConsole.pushSubLine("Cleared chat & log history.");
-
-            break;
-        case "connect":
-            if (message.check(0, Util.TYPE_USER_ID))
-                connectNode(message.getStringData(0).substring(1));
-
-            break;
-        case "disconnect":
-            if (message.check(0, Util.TYPE_USER_ID))
-                disconnectNode(message.getStringData(0).substring(1), false);
-
-            break;
-        case "delay":
-            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_UNSIGNED_INTEGER))
-                nodeStack.setNodeDelay(message.getStringData(0).substring(1), Integer.parseInt(message.getStringData(1)));
-
-            break;
-        case "create-on":
-        case "con": {
-            int dataLength = message.getStringDataLength();
-
-            switch (dataLength) {
-            case 1:
+                break;
+            case "message":
+            case "m":
                 if (message.check(0, Util.TYPE_STRING))
-                    ouroborosNodeStack.add(message.getStringData(0));
+                    postChatMessage(message.join(0));
 
                 break;
-            case 2:
-                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_INTEGER))
-                    ouroborosNodeStack.add(message.getStringData(0).substring(1), Integer.parseInt(message.getStringData(1)));
+            case "file":
+            case "f":
+                if (message.check(0, Util.TYPE_STRING))
+                    fileStack.addPublicFileStore(message.join(0));
 
                 break;
-            default:
-                systemConsole.pushErrorLine(typeIncorrectCommand(message.command));
+            case "file-request":
+            case "fr":
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_FILE_ID))
+                    fileStack.request(message.getStringData(0).substring(1), message.getStringData(1).substring(1));
 
                 break;
-            }
-        }
-            break;
-        case "edit-on":
-        case "eon": {
-            int dataLength = message.getStringDataLength();
-
-            switch (dataLength) {
-            case 2:
-                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID)) {
-                    String targetMapUserId = message.getStringData(0).substring(1);
-                    String rejectNodeUserId = message.getStringData(1).substring(1);
-
-                    ouroborosNodeStack.rejectNode(targetMapUserId, rejectNodeUserId);
-                }
+            case "file-free":
+            case "ff":
+                if (message.check(0, Util.TYPE_FILE_ID))
+                    fileStack.free(message.getStringData(0).substring(1));
 
                 break;
-            case 3:
-                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID) && message.check(2, Util.TYPE_USER_ID)) {
-                    String targetMapUserId = message.getStringData(0).substring(1);
-                    String targetNodeUserId = message.getStringData(1).substring(1);
-                    String replaceNodeUserId = message.getStringData(2).substring(1);
-
-                    ouroborosNodeStack.replaceNode(targetMapUserId, targetNodeUserId, replaceNodeUserId);
-                }
+            case "update":
+            case "u":
+                userStack.getUserList();
 
                 break;
-            case 4:
-                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID) && message.check(2, Util.TYPE_USER_ID)
-                        && message.check(3, Util.TYPE_ONN_FLAG)) {
-                    String targetMapUserId = message.getStringData(0).substring(1);
-                    String connectNodeUserId = message.getStringData(1).substring(1);
-                    String addNodeUserId = message.getStringData(2).substring(1);
-                    String addNodeFlag = message.getStringData(3);
-
-                    ouroborosNodeStack.addNode(targetMapUserId, connectNodeUserId, addNodeUserId, addNodeFlag);
-                }
+            case "list":
+            case "ls":
+                userStack.displayUser();
 
                 break;
-            case 5:
-                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID) && message.check(2, Util.TYPE_USER_ID)
-                        && message.check(3, Util.TYPE_USER_ID) && message.check(4, Util.TYPE_ONN_FLAG)) {
-                    String targetMapUserId = message.getStringData(0).substring(1);
-                    String connectBeforeNodeUserId = message.getStringData(1).substring(1);
-                    String connectAfterNodeUserId = message.getStringData(2).substring(1);
-                    String insertNodeUserId = message.getStringData(3).substring(1);
-                    String insertNodeFlag = message.getStringData(4);
-
-                    ouroborosNodeStack.insertNode(targetMapUserId, connectBeforeNodeUserId, connectAfterNodeUserId, insertNodeUserId, insertNodeFlag);
-                }
+            case "list-key":
+            case "lsk":
+                userStack.displayUserPublicKey();
 
                 break;
-            default:
-                systemConsole.pushErrorLine(typeIncorrectCommand(message.command));
+            case "clear-chat":
+            case "clc":
+                chatConsole.clearAllLine();
+
+                systemConsole.pushSubLine("Cleared chat history.");
 
                 break;
-            }
-        }
-            break;
-        case "show-on":
-        case "son":
-            if (message.check(0, Util.TYPE_USER_ID))
-                ouroborosNodeStack.display(message.getStringData(0).substring(1));
+            case "clear-log":
+            case "cll":
+                systemConsole.clearAllLine();
 
-            break;
-        case "remove-on":
-        case "ron":
-            if (message.check(0, Util.TYPE_USER_ID))
-                ouroborosNodeStack.remove(message.getStringData(0).substring(1));
-
-            break;
-        case "message-on":
-        case "mon":
-            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
-                ouroborosNodeStack.postTextData(message.getStringData(0).substring(1), message.join(1));
-
-            break;
-        case "enqueue-message-on":
-        case "emon":
-            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
-                ouroborosNodeStack.enqueueTextData(message.getStringData(0).substring(1), message.join(1));
-
-            break;
-        case "file-on":
-        case "fon":
-            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
-                ouroborosNodeStack.postFileData(message.getStringData(0).substring(1), message.join(1));
-
-            break;
-        case "enqueue-file-on":
-        case "efon":
-            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
-                ouroborosNodeStack.enqueueFileData(message.getStringData(0).substring(1), message.join(1));
-
-            break;
-        case "b":
-        case "beacon": {
-            int dataLength = message.getStringDataLength();
-
-            switch (dataLength) {
-            case 0:
-                ouroborosNodeStack.startBeacon();
+                systemConsole.pushSubLine("Cleared log history.");
 
                 break;
-            case 1:
+            case "clear":
+            case "cls":
+                chatConsole.clearAllLine();
+                systemConsole.clearAllLine();
+
+                systemConsole.pushSubLine("Cleared chat & log history.");
+
+                break;
+            case "connect":
                 if (message.check(0, Util.TYPE_USER_ID))
-                    ouroborosNodeStack.startBeacon(message.getStringData(0).substring(1));
+                    connectNode(message.getStringData(0).substring(1));
 
                 break;
+            case "disconnect":
+                if (message.check(0, Util.TYPE_USER_ID))
+                    disconnectNode(message.getStringData(0).substring(1), false);
+
+                break;
+            case "delay":
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_UNSIGNED_INTEGER))
+                    nodeStack.setNodeDelay(message.getStringData(0).substring(1), Integer.parseInt(message.getStringData(1)));
+
+                break;
+            case "create-on":
+            case "con": {
+                int dataLength = message.getStringDataLength();
+
+                switch (dataLength) {
+                case 1:
+                    if (message.check(0, Util.TYPE_STRING))
+                        ouroborosNodeStack.add(message.getStringData(0));
+
+                    break;
+                case 2:
+                    if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_INTEGER))
+                        ouroborosNodeStack.add(message.getStringData(0).substring(1), Integer.parseInt(message.getStringData(1)));
+
+                    break;
+                default:
+                    systemConsole.pushErrorLine(typeIncorrectCommand(message.command));
+
+                    break;
+                }
+            }
+                break;
+            case "edit-on":
+            case "eon": {
+                int dataLength = message.getStringDataLength();
+
+                switch (dataLength) {
+                case 2:
+                    if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID)) {
+                        String targetMapUserId = message.getStringData(0).substring(1);
+                        String rejectNodeUserId = message.getStringData(1).substring(1);
+
+                        ouroborosNodeStack.rejectNode(targetMapUserId, rejectNodeUserId);
+                    }
+
+                    break;
+                case 3:
+                    if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID) && message.check(2, Util.TYPE_USER_ID)) {
+                        String targetMapUserId = message.getStringData(0).substring(1);
+                        String targetNodeUserId = message.getStringData(1).substring(1);
+                        String replaceNodeUserId = message.getStringData(2).substring(1);
+
+                        ouroborosNodeStack.replaceNode(targetMapUserId, targetNodeUserId, replaceNodeUserId);
+                    }
+
+                    break;
+                case 4:
+                    if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID) && message.check(2, Util.TYPE_USER_ID)
+                            && message.check(3, Util.TYPE_ONN_FLAG)) {
+                        String targetMapUserId = message.getStringData(0).substring(1);
+                        String connectNodeUserId = message.getStringData(1).substring(1);
+                        String addNodeUserId = message.getStringData(2).substring(1);
+                        String addNodeFlag = message.getStringData(3);
+
+                        ouroborosNodeStack.addNode(targetMapUserId, connectNodeUserId, addNodeUserId, addNodeFlag);
+                    }
+
+                    break;
+                case 5:
+                    if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_USER_ID) && message.check(2, Util.TYPE_USER_ID)
+                            && message.check(3, Util.TYPE_USER_ID) && message.check(4, Util.TYPE_ONN_FLAG)) {
+                        String targetMapUserId = message.getStringData(0).substring(1);
+                        String connectBeforeNodeUserId = message.getStringData(1).substring(1);
+                        String connectAfterNodeUserId = message.getStringData(2).substring(1);
+                        String insertNodeUserId = message.getStringData(3).substring(1);
+                        String insertNodeFlag = message.getStringData(4);
+
+                        ouroborosNodeStack.insertNode(targetMapUserId, connectBeforeNodeUserId, connectAfterNodeUserId, insertNodeUserId, insertNodeFlag);
+                    }
+
+                    break;
+                default:
+                    systemConsole.pushErrorLine(typeIncorrectCommand(message.command));
+
+                    break;
+                }
+            }
+                break;
+            case "show-on":
+            case "son":
+                if (message.check(0, Util.TYPE_USER_ID))
+                    ouroborosNodeStack.display(message.getStringData(0).substring(1));
+
+                break;
+            case "remove-on":
+            case "ron":
+                if (message.check(0, Util.TYPE_USER_ID))
+                    ouroborosNodeStack.remove(message.getStringData(0).substring(1));
+
+                break;
+            case "message-on":
+            case "mon":
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
+                    ouroborosNodeStack.postTextData(message.getStringData(0).substring(1), message.join(1));
+
+                break;
+            case "enqueue-message-on":
+            case "emon":
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
+                    ouroborosNodeStack.enqueueTextData(message.getStringData(0).substring(1), message.join(1));
+
+                break;
+            case "file-on":
+            case "fon":
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
+                    ouroborosNodeStack.postFileData(message.getStringData(0).substring(1), message.join(1));
+
+                break;
+            case "enqueue-file-on":
+            case "efon":
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
+                    ouroborosNodeStack.enqueueFileData(message.getStringData(0).substring(1), message.join(1));
+
+                break;
+            case "b":
+            case "beacon": {
+                int dataLength = message.getStringDataLength();
+
+                switch (dataLength) {
+                case 0:
+                    ouroborosNodeStack.startBeacon();
+
+                    break;
+                case 1:
+                    if (message.check(0, Util.TYPE_USER_ID))
+                        ouroborosNodeStack.startBeacon(message.getStringData(0).substring(1));
+
+                    break;
+                default:
+                    systemConsole.pushErrorLine(typeIncorrectCommand(message.command));
+
+                    break;
+                }
+            }
+                break;
             default:
-                systemConsole.pushErrorLine(typeIncorrectCommand(message.command));
+                systemConsole.pushErrorLine(typeNonExistCommand(message.command));
 
                 break;
             }
-        }
-            break;
-        default:
-            systemConsole.pushErrorLine(typeNonExistCommand(message.command));
-
-            break;
+        } catch (Exception e) {
+            systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Failed to execute command (unintended error)."));
         }
     }
 

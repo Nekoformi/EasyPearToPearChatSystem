@@ -8,6 +8,7 @@ Work in progress...
 
 - Add feature: Beacon (Ouroboros Node Network)
 - Fix feature: Ouroboros Node Network
+- Fix command exception handling
 
 ## E=CS 1.3
 
