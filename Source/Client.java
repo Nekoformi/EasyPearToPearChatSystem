@@ -3,7 +3,6 @@ package Source;
 import Source.Stacks.FileStack;
 import Source.Stacks.Node;
 import Source.Stacks.NodeStack;
-import Source.Stacks.OuroborosNode;
 import Source.Stacks.OuroborosNodeStack;
 import Source.Stacks.Task;
 import Source.Stacks.TaskStack;
@@ -19,7 +18,6 @@ import Source.Utils.Util;
 
 import java.io.*;
 import java.net.*;
-import java.nio.file.*;
 import java.util.*;
 import javax.net.ssl.*;
 
@@ -415,7 +413,7 @@ public class Client {
 
                 break;
             default:
-                systemConsole.pushErrorLine("Invalid command received: Command \"" + message.command + "\" is written incorrectly.");
+                systemConsole.pushErrorLine(typeIncorrectCommand(message.command));
 
                 break;
             }
@@ -471,7 +469,7 @@ public class Client {
 
                 break;
             default:
-                systemConsole.pushErrorLine("Invalid command received: Command \"" + message.command + "\" is written incorrectly.");
+                systemConsole.pushErrorLine(typeIncorrectCommand(message.command));
 
                 break;
             }
@@ -491,37 +489,62 @@ public class Client {
             break;
         case "message-on":
         case "mon":
-            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING)) {
-                OuroborosNode rec = ouroborosNodeStack.postTextData(message.getStringData(0).substring(1), message.join(1));
+            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
+                ouroborosNodeStack.postTextData(message.getStringData(0).substring(1), message.join(1));
 
-                if (rec == null)
-                    break;
-
-                String chatMessage = message.join(1).replaceAll("\\\\n", "\n");
-
-                chatConsole.pushMainLine(OuroborosNodeStack.typeChatMessage(rec, chatMessage, false));
-            }
+            break;
+        case "enqueue-message-on":
+        case "emon":
+            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
+                ouroborosNodeStack.enqueueTextData(message.getStringData(0).substring(1), message.join(1));
 
             break;
         case "file-on":
         case "fon":
-            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING)) {
-                OuroborosNode rec = ouroborosNodeStack.postFileData(message.getStringData(0).substring(1), message.join(1));
-
-                if (rec == null)
-                    break;
-
-                String chatMessage = "Start sending the file: " + Paths.get(message.join(1)).getFileName().toString();
-
-                chatConsole.pushSubLine(OuroborosNodeStack.typeChatMessage(rec, chatMessage, false));
-            }
+            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
+                ouroborosNodeStack.postFileData(message.getStringData(0).substring(1), message.join(1));
 
             break;
+        case "enqueue-file-on":
+        case "efon":
+            if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
+                ouroborosNodeStack.enqueueFileData(message.getStringData(0).substring(1), message.join(1));
+
+            break;
+        case "b":
+        case "beacon": {
+            int dataLength = message.getStringDataLength();
+
+            switch (dataLength) {
+            case 0:
+                ouroborosNodeStack.startBeacon();
+
+                break;
+            case 1:
+                if (message.check(0, Util.TYPE_USER_ID))
+                    ouroborosNodeStack.startBeacon(message.getStringData(0).substring(1));
+
+                break;
+            default:
+                systemConsole.pushErrorLine(typeIncorrectCommand(message.command));
+
+                break;
+            }
+        }
+            break;
         default:
-            systemConsole.pushErrorLine("Invalid command received: Command \"" + message.command + "\" does not exist.");
+            systemConsole.pushErrorLine(typeNonExistCommand(message.command));
 
             break;
         }
+    }
+
+    public static String typeIncorrectCommand(String command) {
+        return "Invalid command received: Command \"" + command + "\" is written incorrectly.";
+    }
+
+    public static String typeNonExistCommand(String command) {
+        return "Invalid command received: Command \"" + command + "\" does not exist.";
     }
 
     public String generateSecureHashWithUserProfile(String id, String data) {

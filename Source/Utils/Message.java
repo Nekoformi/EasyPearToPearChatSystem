@@ -146,7 +146,7 @@ public class Message {
         if (dataString != null) {
             return dataString.length;
         } else {
-            return -1;
+            return 0;
         }
     }
 

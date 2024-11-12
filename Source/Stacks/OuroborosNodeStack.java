@@ -11,10 +11,38 @@ import java.util.*;
 public class OuroborosNodeStack {
     public static int WAITING_TIME_MIN = 10;
     public static int WAITING_TIME_MAX = 1000;
+    public static double PROBABILITY_BEACON_CHAINING = 0.5;
 
     Client client;
 
     List<OuroborosNode> ouroborosNodeStack = new ArrayList<OuroborosNode>();
+
+    class PostDataQueue {
+        User targetUser;
+        String data;
+        byte dataType;
+
+        public PostDataQueue(User targetUser, String data, byte dataType) {
+            this.targetUser = targetUser;
+            this.data = data;
+            this.dataType = dataType;
+        }
+
+        public void processData(OuroborosNode ouroborosNode, byte[] messageId, byte[] messageSize) {
+            ouroborosNode.setMapFromBeacon(targetUser, OuroborosNode.MIN_DUMMIES_NUM);
+
+            switch (dataType) {
+            case OuroborosNode.MESSAGE_TYPE_STRING:
+                postTextData(ouroborosNode, data, messageId, messageSize);
+                break;
+            case OuroborosNode.MESSAGE_TYPE_BINARY_SND:
+                postFileData(ouroborosNode, data, messageId, messageSize);
+                break;
+            }
+        }
+    }
+
+    List<PostDataQueue> postDataQueue = new ArrayList<PostDataQueue>();
 
     class SendDataStore {
         User user;
@@ -159,7 +187,7 @@ public class OuroborosNodeStack {
         // ouroborosNodeStack.remove(currentOuroborosNode);
         // ouroborosNodeStack.add(ouroborosNode);
 
-        currentOuroborosNode.set(ouroborosNode.map);
+        currentOuroborosNode.setMap(ouroborosNode.map);
 
         client.systemConsole.pushMainLine("Update the " + typeMap(currentOuroborosNode));
         client.systemConsole.pushMainLine(currentOuroborosNode.display());
@@ -378,6 +406,25 @@ public class OuroborosNodeStack {
         }
     }
 
+    public OuroborosNode createEmptyOuroborosNode(String targetUserId) {
+        User targetUser = client.userStack.test(targetUserId);
+
+        if (targetUser == null)
+            return null;
+
+        if (client.userStack.myProfile.equals(targetUser)) {
+            client.systemConsole.pushErrorLine("You can't specify yourself.");
+
+            return null;
+        }
+
+        OuroborosNode res = new OuroborosNode(client, targetUser);
+
+        res.setMap();
+
+        return res;
+    }
+
     public OuroborosNode postTextData(String targetUserId, String text) {
         OuroborosNode rec = get(targetUserId);
 
@@ -387,22 +434,50 @@ public class OuroborosNodeStack {
             return null;
         }
 
-        byte[] res = rec.createOuroborosData(text);
+        return postTextData(rec, text);
+    }
+
+    public OuroborosNode postTextData(OuroborosNode ouroborosNode, String text) {
+        return postTextData(ouroborosNode, text, null, null);
+    }
+
+    public OuroborosNode postTextData(OuroborosNode ouroborosNode, String text, byte[] messageId, byte[] messageSize) {
+        byte[] res;
+
+        if (messageId != null && messageSize != null) {
+            res = ouroborosNode.createOuroborosData(messageId, messageSize, text);
+        } else {
+            res = ouroborosNode.createOuroborosData(text);
+        }
+
+        {
+            String chatMessage = text.replaceAll("\\\\n", "\n");
+
+            client.chatConsole.pushMainLine(OuroborosNodeStack.typeChatMessage(ouroborosNode, chatMessage, false));
+        }
 
         processData(res, true);
 
-        return rec;
+        return ouroborosNode;
     }
 
     public OuroborosNode postFileData(String targetUserId, String filePath) {
-        OuroborosNode ouroborosNode = get(targetUserId);
+        OuroborosNode rec = get(targetUserId);
 
-        if (ouroborosNode == null) {
+        if (rec == null) {
             client.systemConsole.pushErrorLine(typeErrorUnknownOuroborosNode(targetUserId));
 
             return null;
         }
 
+        return postFileData(rec, filePath);
+    }
+
+    public OuroborosNode postFileData(OuroborosNode ouroborosNode, String filePath) {
+        return postFileData(ouroborosNode, filePath, null, null);
+    }
+
+    public OuroborosNode postFileData(OuroborosNode ouroborosNode, String filePath, byte[] messageId, byte[] messageSize) {
         FileStore fileStore = client.fileStack.addPrivateFileStore(filePath, ouroborosNode.target, ouroborosNode.calcMaximumDataSize() - (16 + 4 + 4));
 
         if (fileStore == null) {
@@ -416,18 +491,105 @@ public class OuroborosNodeStack {
         byte[] fileSumPart = Util.convertIntToByteArray(fileStore.getFileSumPart());
         byte[] fileName = Util.convertStringToByteArray(fileStore.getFileName());
         byte[] fileNameSize = Util.convertIntToByteArray(fileName.length);
+        byte[] data = Util.concatByteArray(fileId, filePartNo, fileSumPart, fileNameSize, fileName);
 
-        byte[] res = ouroborosNode.createOuroborosData(Util.concatByteArray(fileId, filePartNo, fileSumPart, fileNameSize, fileName),
-                OuroborosNode.MESSAGE_TYPE_BINARY_SND);
-
-        // res = {
+        // data = {
         // ### fileId[16], filePartNo[4], fileSumPart[4],
         // ### fileNameSize[4], fileName[...]
         // };
 
+        byte[] res;
+
+        if (messageId != null && messageSize != null) {
+            res = ouroborosNode.createOuroborosData(messageId, messageSize, data, OuroborosNode.MESSAGE_TYPE_BINARY_SND);
+        } else {
+            res = ouroborosNode.createOuroborosData(data, OuroborosNode.MESSAGE_TYPE_BINARY_SND);
+        }
+
+        {
+            String chatMessage = "Start sending the file: " + Util.getFileNameFromFilePath(filePath);
+
+            client.chatConsole.pushSubLine(OuroborosNodeStack.typeChatMessage(ouroborosNode, chatMessage, false));
+        }
+
         processData(res, true);
 
         return ouroborosNode;
+    }
+
+    public OuroborosNode startBeacon() {
+        User targetUser = pickRandomUser();
+
+        if (targetUser != null) {
+            return startBeacon(targetUser.id);
+        } else {
+            return null;
+        }
+    }
+
+    public OuroborosNode startBeacon(String targetUserId) {
+        OuroborosNode rec = createEmptyOuroborosNode(targetUserId);
+
+        if (rec == null)
+            return null;
+
+        rec.setBeacon();
+
+        byte[] res = rec.createOuroborosBeaconData();
+
+        client.systemConsole.pushMainLine("Activate the " + typeBeacon(rec));
+
+        processData(res, true);
+
+        return rec;
+    }
+
+    public void enqueueTextData(String targetUserId, String text) {
+        User target = client.userStack.test(targetUserId);
+
+        if (target == null)
+            return;
+
+        if (client.userStack.myProfile.equals(targetUserId)) {
+            client.systemConsole.pushErrorLine(typeErrorYourself(targetUserId));
+
+            return;
+        }
+
+        postDataQueue.add(new PostDataQueue(target, text, OuroborosNode.MESSAGE_TYPE_STRING));
+
+        {
+            String chatMessage = "Enqueue message: " + text.replaceAll("\\\\n", "\n");
+
+            client.systemConsole.pushMainLine(chatMessage);
+        }
+    }
+
+    public void enqueueFileData(String targetUserId, String filePath) {
+        User target = client.userStack.test(targetUserId);
+
+        if (target == null)
+            return;
+
+        if (client.userStack.myProfile.equals(targetUserId)) {
+            client.systemConsole.pushErrorLine(typeErrorYourself(targetUserId));
+
+            return;
+        }
+
+        postDataQueue.add(new PostDataQueue(target, filePath, OuroborosNode.MESSAGE_TYPE_BINARY_SND));
+
+        {
+            String chatMessage = "Enqueue file: " + Util.getFileNameFromFilePath(filePath);
+
+            client.systemConsole.pushMainLine(chatMessage);
+        }
+    }
+
+    public void dequeuePostData(OuroborosNode ouroborosNode, byte[] messageId, byte[] messageSize) {
+        PostDataQueue rec = postDataQueue.remove(0);
+
+        rec.processData(ouroborosNode, messageId, messageSize);
     }
 
     public Task[] processData(byte[] data, boolean skipPeel) {
@@ -438,10 +600,10 @@ public class OuroborosNodeStack {
 
         List<Task> res = new ArrayList<Task>();
 
-        byte[] messageId = rec[0];
+        // byte[] messageId = rec[0];
         byte[] messageSize = rec[1];
         byte flag = rec[2][0];
-        byte type = rec[3][0];
+        // byte type = rec[3][0];
 
         switch (flag) {
         case OuroborosNode.FLAG_BYTE_POST: {
@@ -501,61 +663,16 @@ public class OuroborosNodeStack {
             }
         }
             break;
-        case OuroborosNode.FLAG_BYTE_RECEIVE: {
-            byte[] message = rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 3];
-
+        case OuroborosNode.FLAG_BYTE_BEACON: {
             displayDataSummary(rec, data.length);
 
-            OuroborosNode rem = addOuroborosNodeFromData(rec);
+            processBeaconData(rec);
+        }
+            break;
+        case OuroborosNode.FLAG_BYTE_RECEIVE: {
+            displayDataSummary(rec, data.length);
 
-            if (rem != null) {
-                if (true /* rem.addMessageStore(messageId) */) {
-                    if (type == OuroborosNode.MESSAGE_TYPE_STRING) {
-                        String chatMessage = Util.convertByteArrayToString(message).replaceAll("\\\\n", "\n");
-
-                    client.chatConsole.pushMainLine(typeChatMessage(rem, chatMessage, true));
-
-                        processData(rem.createOuroborosFinishData(messageId, messageSize), true);
-                    } else {
-                        byte[] buf;
-
-                        try {
-                            switch (type) {
-                            case OuroborosNode.MESSAGE_TYPE_BINARY_SND: {
-                                byte[] nextMessage = receiveFile(rem, message);
-
-                                if (nextMessage != null) {
-                                    buf = rem.createOuroborosData(messageId, messageSize, nextMessage, OuroborosNode.MESSAGE_TYPE_BINARY_REQ);
-                                } else {
-                                    buf = rem.createOuroborosFinishData(messageId, messageSize);
-                                }
-                            }
-                                break;
-                            case OuroborosNode.MESSAGE_TYPE_BINARY_REQ: {
-                                byte[] nextMessage = sendFile(rem, message);
-
-                                if (nextMessage != null) {
-                                    buf = rem.createOuroborosData(messageId, messageSize, nextMessage, OuroborosNode.MESSAGE_TYPE_BINARY_SND);
-                                } else {
-                                    buf = rem.createOuroborosFinishData(messageId, messageSize);
-                                }
-                            }
-                                break;
-                            default:
-                                buf = rem.createOuroborosFinishData(messageId, messageSize);
-
-                                break;
-                            }
-                        } catch (Exception e) {
-                            client.systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Something is wrong."));
-
-                            buf = rem.createOuroborosFinishData(messageId, messageSize);
-                        }
-
-                        processData(buf, true);
-                    }
-                }
-            }
+            processReceiveData(rec);
         }
             break;
         case OuroborosNode.FLAG_BYTE_FINISH: {
@@ -589,6 +706,106 @@ public class OuroborosNodeStack {
         return res.toArray(new Task[res.size()]);
     }
 
+    void processReceiveData(byte[][] rec) {
+        byte[] messageId = rec[0];
+        byte[] messageSize = rec[1];
+        // byte flag = rec[2][0];
+        byte type = rec[3][0];
+
+        byte[] message = rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 3];
+
+        OuroborosNode rem = addOuroborosNodeFromData(rec);
+
+        if (rem != null) {
+            if (true /* rem.addMessageStore(messageId) */) {
+                if (type == OuroborosNode.MESSAGE_TYPE_STRING) {
+                    String chatMessage = Util.convertByteArrayToString(message).replaceAll("\\\\n", "\n");
+
+                    client.chatConsole.pushMainLine(typeChatMessage(rem, chatMessage, true));
+
+                    processData(rem.createOuroborosFinishData(messageId, messageSize), true);
+                } else {
+                    byte[] buf;
+
+                    try {
+                        switch (type) {
+                        case OuroborosNode.MESSAGE_TYPE_BINARY_SND: {
+                            byte[] nextMessage = receiveFile(rem, message);
+
+                            if (nextMessage != null) {
+                                buf = rem.createOuroborosData(messageId, messageSize, nextMessage, OuroborosNode.MESSAGE_TYPE_BINARY_REQ);
+                            } else {
+                                buf = rem.createOuroborosFinishData(messageId, messageSize);
+                            }
+                        }
+                            break;
+                        case OuroborosNode.MESSAGE_TYPE_BINARY_REQ: {
+                            byte[] nextMessage = sendFile(rem, message);
+
+                            if (nextMessage != null) {
+                                buf = rem.createOuroborosData(messageId, messageSize, nextMessage, OuroborosNode.MESSAGE_TYPE_BINARY_SND);
+                            } else {
+                                buf = rem.createOuroborosFinishData(messageId, messageSize);
+                            }
+                        }
+                            break;
+                        default:
+                            buf = rem.createOuroborosFinishData(messageId, messageSize);
+
+                            break;
+                        }
+                    } catch (Exception e) {
+                        client.systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Something is wrong."));
+
+                        buf = rem.createOuroborosFinishData(messageId, messageSize);
+                    }
+
+                    processData(buf, true);
+                }
+            }
+        }
+    }
+
+    void processBeaconData(byte[][] rec) {
+        byte[] messageId = rec[0];
+        byte[] messageSize = rec[1];
+        // byte flag = rec[2][0];
+        // byte type = rec[3][0];
+
+        OuroborosNode rem = getOuroborosNodeFromData(rec);
+
+        if (rem == null)
+            return;
+
+        if (postDataQueue.size() > 0) {
+            client.systemConsole.pushMainLine("Take the " + typeBeacon(rem));
+
+            dequeuePostData(rem, messageId, messageSize);
+
+            return;
+        }
+
+        User next = pickRandomUser(rem.getMap());
+
+        if (next == null) {
+            client.systemConsole.pushMainLine("Break the " + typeBeacon(rem));
+
+            return;
+        }
+
+        if (Util.generateRandomBoolean(PROBABILITY_BEACON_CHAINING)) {
+            rem.setBeacon(next);
+
+            byte[] res = rem.createOuroborosBeaconData(messageId, messageSize);
+
+            client.systemConsole.pushMainLine("Continue the " + typeBeacon(rem));
+
+            processData(res, true);
+        } else {
+            client.systemConsole.pushMainLine("Break the " + typeBeacon(rem));
+        }
+    }
+
     void displayDataSummary(byte[][] rec, int messageSizeA) {
         String messageId = Util.convertByteArrayToHexString(rec[0]);
         int messageSizeB = Util.convertByteArrayToInt(rec[1]);
@@ -598,6 +815,34 @@ public class OuroborosNodeStack {
         client.systemConsole
                 .pushMainLine("Get ONN data ... ONN#" + messageId + " (" + String.valueOf(messageSizeA) + " byte / " + String.valueOf(messageSizeB) + " byte)");
         client.systemConsole.pushMainLine("Your job flag is ... " + flag);
+    }
+
+    User pickRandomUser() {
+        List<User> rec = pickRandomUser(1);
+
+        if (rec != null && rec.size() == 1) {
+            return rec.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    List<User> pickRandomUser(int n) {
+        return Util.randomPickListItem(client.userStack.carbon(false), n);
+    }
+
+    User pickRandomUser(List<User> excludeUserList) {
+        List<User> rec = pickRandomUser(excludeUserList, 1);
+
+        if (rec != null && rec.size() == 1) {
+            return rec.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    List<User> pickRandomUser(List<User> excludeUserList, int n) {
+        return Util.randomPickListItem(Util.excludeListItem(client.userStack.carbon(false), excludeUserList), n);
     }
 
     SendDataStore[] generateSendDataStore(byte[][] rec) {
@@ -615,8 +860,9 @@ public class OuroborosNodeStack {
     OuroborosNode addOuroborosNodeFromData(byte[][] rec) {
         String postUserId = Util.convertByteArrayToHexString(rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 0]);
         byte[] postUserPublicKey = rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 1];
+        String mapStructure = Util.convertByteArrayToString(rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 2]);
 
-        OuroborosNode res = add(postUserId, Util.convertByteArrayToString(rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 2]));
+        OuroborosNode res = add(postUserId, mapStructure);
 
         if (res == null) {
             client.systemConsole.pushErrorLine("Failed to register received " + typeMap());
@@ -625,6 +871,36 @@ public class OuroborosNodeStack {
         }
 
         if (!Arrays.equals(res.target.publicKey.getEncoded(), postUserPublicKey)) {
+            client.systemConsole
+                    .pushWarningLine("The public key (@" + postUserId + ") does not match the public key received. Please update the user list with /update.");
+
+            // return null;
+        }
+
+        return res;
+    }
+
+    OuroborosNode getOuroborosNodeFromData(byte[][] rec) {
+        String postUserId = Util.convertByteArrayToHexString(rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 0]);
+        byte[] postUserPublicKey = rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 1];
+        String mapStructure = Util.convertByteArrayToString(rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 2]);
+
+        User postUser = client.userStack.test(postUserId);
+
+        if (postUser == null)
+            return null;
+
+        OuroborosNode res = new OuroborosNode(client, postUser);
+
+        res.setMap(mapStructure, false);
+
+        if (res.check() != 0) {
+            client.systemConsole.pushErrorLine("Failed to get a " + typeMap());
+
+            return null;
+        }
+
+        if (!Arrays.equals(postUser.publicKey.getEncoded(), postUserPublicKey)) {
             client.systemConsole
                     .pushWarningLine("The public key (@" + postUserId + ") does not match the public key received. Please update the user list with /update.");
 
@@ -795,6 +1071,10 @@ public class OuroborosNodeStack {
         String sendDisplay = ouroborosNode.target.display();
 
         return "map of the Ouroboros Node Network: " + postDisplay + " ↔ " + sendDisplay;
+    }
+
+    public static String typeBeacon(OuroborosNode ouroborosNode) {
+        return "beacon: \n" + ouroborosNode.display();
     }
 
     public static String typeErrorYourself(User user) {

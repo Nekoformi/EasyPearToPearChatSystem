@@ -35,7 +35,7 @@ public class FileCache {
 
         this.user = user;
         this.fileId = fileId;
-        this.fileName = Paths.get(fileName).getFileName().toString(); // This is important!
+        this.fileName = Util.getFileNameFromFilePath(fileName); // This is important!
 
         client.systemConsole.pushMainLine("The file (" + fileName + ") was stocked as #" + fileId + " by @" + userId + ".");
 

@@ -14,7 +14,7 @@ public class OuroborosNode {
     public static final boolean DISPLAY_ONN_PROCESS = true;
     public static final boolean DISPLAY_ONN_PROCESS_FULL_CONTENT = false;
 
-    public static final int MAX_MESSAGE_DATA_SIZE = 65536 / 2;
+    public static final int MAX_MESSAGE_DATA_SIZE = 65536;
     public static final int MIN_DUMMIES_NUM = 2;
 
     public static final byte FLAG_BYTE_NULL = 0;
@@ -27,6 +27,7 @@ public class OuroborosNode {
     public static final byte FLAG_BYTE_DELETE = 7;
     public static final byte FLAG_BYTE_WAIT = 8;
     public static final byte FLAG_BYTE_REPEAT = 9;
+    public static final byte FLAG_BYTE_BEACON = 10;
 
     public static final String FLAG_NAME_NULL = "NUL";
     public static final String FLAG_NAME_SYNCHRONIZE = "SYN";
@@ -38,6 +39,7 @@ public class OuroborosNode {
     public static final String FLAG_NAME_DELETE = "DEL";
     public static final String FLAG_NAME_WAIT = "WAI";
     public static final String FLAG_NAME_REPEAT = "REP";
+    public static final String FLAG_NAME_BEACON = "BEA";
 
     public static final int AES_BLOCK_SIZE = 16; // 128 bit = 16 byte
     public static final int AES_COMMON_KEY_SIZE = 32; // 256 bit = 32 byte
@@ -49,9 +51,10 @@ public class OuroborosNode {
     public static final byte MESSAGE_TYPE_STRING = (byte)0x00;
     public static final byte MESSAGE_TYPE_BINARY_SND = (byte)0x01;
     public static final byte MESSAGE_TYPE_BINARY_REQ = (byte)0x02;
-    public static final byte MESSAGE_TYPE_FINISH = (byte)0x03;
-    public static final byte MESSAGE_TYPE_SYNCHRONIZE = (byte)0x04;
-    public static final byte MESSAGE_TYPE_ACKNOWLEDGE = (byte)0x05;
+    public static final byte MESSAGE_TYPE_BEACON = (byte)0x03;
+    public static final byte MESSAGE_TYPE_FINISH = (byte)0x04;
+    public static final byte MESSAGE_TYPE_SYNCHRONIZE = (byte)0x05;
+    public static final byte MESSAGE_TYPE_ACKNOWLEDGE = (byte)0x06;
     public static final byte MESSAGE_TYPE_NULL = (byte)0xFF;
 
     public static final int ONN_LAYER_3_PROPERTY_SIZE = 4;
@@ -258,6 +261,15 @@ public class OuroborosNode {
             return res;
         }
 
+        public void setFlag(String flag) {
+            this.flag = flag;
+
+            if (next != null) {
+                for (MapStructure item : next)
+                    item.setFlag(flag);
+            }
+        }
+
         public void setFlag(User user, String flag) {
             if (this.user.equals(user)) {
                 this.flag = flag;
@@ -410,6 +422,26 @@ public class OuroborosNode {
             if (next != null)
                 for (MapStructure item : next)
                     res += item.add(connectNodeUser, addNodeUser, flag);
+
+            return res;
+        }
+
+        public int push(User pushNodeUser, String flag) {
+            int res = 0;
+
+            if (next == null || next.size() == 0) {
+                MapStructure rec = new MapStructure(pushNodeUser, flag);
+
+                if (next != null) {
+                    next.add(rec);
+                } else {
+                    next = Util.createExpandableList(rec);
+                }
+
+                res++;
+            } else {
+                res += next.get(0).push(pushNodeUser, flag);
+            }
 
             return res;
         }
@@ -607,6 +639,16 @@ public class OuroborosNode {
         int postIndex = -1; // = 0;
         int sendIndex = -1;
 
+        public Map(User post, User send) {
+            this.post = post;
+            this.send = send;
+
+            setDummy(new ArrayList<User>());
+            setTarget(post, send);
+
+            createMapStructure();
+        }
+
         public Map(List<User> dummy, User post, User send) {
             this.post = post;
             this.send = send;
@@ -654,7 +696,7 @@ public class OuroborosNode {
         }
 
         public int check() {
-            if (dummy == null || dummy.size() <= 0) {
+            if (dummy == null) {
                 client.systemConsole.pushErrorLine("The dummy list is not set correctly.");
 
                 return 1;
@@ -700,12 +742,28 @@ public class OuroborosNode {
             return userList.stream().filter(user -> (post == null || !user.equals(post)) && (send == null || !user.equals(send))).collect(Collectors.toList());
         }
 
+        public List<User> getDummy() {
+            return new ArrayList<User>(dummy);
+        }
+
+        public List<User> getMap() {
+            return new ArrayList<User>(map);
+        }
+
+        public User getUserFromDummy(User target) {
+            return dummy.stream().filter(user -> user.equals(target)).findFirst().orElse(null);
+        }
+
+        public User getUserFromMap(User target) {
+            return map.stream().filter(user -> user.equals(target)).findFirst().orElse(null);
+        }
+
         void setDummy(List<User> dummy) {
             this.dummy = filterList(dummy);
         }
 
         void setDummy(List<User> candidate, int pickDummyNum) {
-            dummy = Util.pickRandomArray(filterList(candidate), pickDummyNum);
+            dummy = Util.randomPickListItem(filterList(candidate), pickDummyNum);
         }
 
         void setTarget(User post, User send) {
@@ -756,6 +814,47 @@ public class OuroborosNode {
             this.send = send;
 
             setTargetIndex();
+        }
+
+        public void setBeacon() {
+            mapStructure.setFlag(FLAG_NAME_BEACON);
+            mapStructure.setFlag(myself, FLAG_NAME_POST);
+        }
+
+        public void setBeacon(User next) {
+            dummy.add(send);
+            map.add(next);
+
+            setTargetIndex(post, next);
+            setBeacon();
+
+            mapStructure.push(next, FLAG_NAME_BEACON);
+        }
+
+        public void setMapFromBeacon(List<User> candidate, User target, int addDummyNum) {
+            send = target;
+
+            List<User> addDummy = Util.randomPickListItem(filterList(candidate), addDummyNum);
+
+            if (addDummy.size() != addDummyNum)
+                client.systemConsole.pushWarningLine("Fewer dummies were added than specified, suggesting the network is at risk.");
+
+            List<User> addMap = new ArrayList<User>(addDummy);
+
+            if (getUserFromMap(target) == null)
+                Util.randomInsertListItem(addMap, target);
+
+            dummy.addAll(addDummy);
+            map.addAll(addMap);
+
+            setTargetIndex();
+
+            mapStructure.concat(new MapStructure(addMap));
+            mapStructure.setFlag(FLAG_NAME_DUMMY);
+            mapStructure.setFlag(post, FLAG_NAME_POST);
+            mapStructure.setFlag(send, FLAG_NAME_RECEIVE);
+
+            mapStructure = MapStructure.swap(mapStructure, post);
         }
 
         public int swap() {
@@ -920,6 +1019,12 @@ public class OuroborosNode {
             return true;
         }
 
+        public boolean pushNodeToMapStructure(User pushNodeUser, String flag) {
+            mapStructure.push(pushNodeUser, flag);
+
+            return true;
+        }
+
         public boolean replaceNodeToMapStructure(User targetNodeUser, User convertNodeUser) {
             int res = mapStructure.replace(targetNodeUser, convertNodeUser);
 
@@ -952,6 +1057,13 @@ public class OuroborosNode {
     Map map;
 
     List<String> messageStore = new ArrayList<String>();
+
+    public OuroborosNode(Client client, User target) {
+        this.client = client;
+
+        this.myself = client.userStack.myProfile;
+        this.target = target;
+    }
 
     public OuroborosNode(Client client, User target, int pickDummyNum) {
         this.client = client;
@@ -1013,8 +1125,50 @@ public class OuroborosNode {
         }
     }
 
-    public void set(Map map) {
+    public List<User> getDummy() {
+        return map.getDummy();
+    }
+
+    public List<User> getMap() {
+        return map.getMap();
+    }
+
+    public void setMap() {
+        this.map = new Map(myself, target);
+    }
+
+    public void setMap(Map map) {
         this.map = map;
+    }
+
+    public void setMap(String mapStructureData) {
+        setMap(mapStructureData, true);
+    }
+
+    public void setMap(String mapStructureData, boolean strictProcess) {
+        if (strictProcess) {
+            this.map = new Map(client.userStack.carbon(true), mapStructureData);
+        } else {
+            this.map = new Map(client.userStack.carbon(true), myself, target, mapStructureData);
+        }
+    }
+
+    public void setBeacon() {
+        map.setBeacon();
+    }
+
+    public void setBeacon(User next) {
+        target = next;
+
+        map.setBeacon(next);
+    }
+
+    public void setMapFromBeacon(User target, int addDummyNum) {
+        this.target = target;
+
+        List<User> candidate = Util.excludeListItem(client.userStack.carbon(false), getMap());
+
+        map.setMapFromBeacon(candidate, target, addDummyNum);
     }
 
     public String encode() {
@@ -1102,6 +1256,19 @@ public class OuroborosNode {
         return createOuroborosData(messageId, messageSize, messageData, MESSAGE_TYPE_ACKNOWLEDGE, mapStructure, true);
     }
 
+    public byte[] createOuroborosBeaconData() {
+        byte[] messageId = Util.generateNoiseByte(16);
+        byte[] messageSize = Util.convertIntToByteArray(MAX_MESSAGE_DATA_SIZE);
+
+        return createOuroborosBeaconData(messageId, messageSize);
+    }
+
+    public byte[] createOuroborosBeaconData(byte[] messageId, byte[] messageSize) {
+        byte[] messageData = Util.convertStringToByteArray(FLAG_NAME_BEACON);
+
+        return createOuroborosData(messageId, messageSize, messageData, MESSAGE_TYPE_BEACON);
+    }
+
     public byte[] createOuroborosFinishData(byte[] messageId, byte[] messageSize) {
         byte[] messageData = Util.convertStringToByteArray(FLAG_NAME_FINISH);
         MapStructure mapStructure = map.getMapStructureAddCircleTail();
@@ -1177,8 +1344,9 @@ public class OuroborosNode {
 
     List<Integer> generateNoiseStore(int sumNoiseSize, MapStructure mapStructure, boolean stopTarget) {
         if (stopTarget) {
+            int myselfIndex = mapStructure.getTargetIndex(myself, false);
             int targetIndex = mapStructure.getTargetIndex(target, false);
-            int targetCount = mapStructure.getMainBranchPart(0, targetIndex + 1, null).count();
+            int targetCount = mapStructure.getMainBranchPart(myselfIndex, targetIndex + 1, null).count();
 
             return generateNoiseStore(sumNoiseSize, targetCount);
         } else {
@@ -1222,9 +1390,21 @@ public class OuroborosNode {
     }
 
     int calcOuroborosDataSize(int messageDataSize, MapStructure mapStructure, List<Integer> noiseStore) {
+        return calcOuroborosDataSize(messageDataSize, mapStructure, true, noiseStore);
+    }
+
+    int calcOuroborosDataSize(int messageDataSize, MapStructure mapStructure, boolean skip, List<Integer> noiseStore) {
         int res;
 
         int flagType = getFlagType(mapStructure.flag);
+
+        if (skip) {
+            if (flagType == 1) {
+                skip = false;
+            } else {
+                return calcOuroborosDataSize(messageDataSize, mapStructure.next.get(0), skip, noiseStore);
+            }
+        }
 
         if (flagType == 0 || flagType == 2) {
             res = calcOuroborosDataLayerSize2B(messageDataSize);
@@ -1233,7 +1413,7 @@ public class OuroborosNode {
             if (mapStructure.next.size() == 1) {
                 MapStructure next = mapStructure.next.get(0);
 
-                res = calcOuroborosDataLayerSize2A(calcOuroborosDataSize(messageDataSize, next, noiseStore));
+                res = calcOuroborosDataLayerSize2A(calcOuroborosDataSize(messageDataSize, next, skip, noiseStore));
                 res = calcOuroborosDataLayerSize1A(res, noiseStore != null ? Util.popListItem(noiseStore) : 0);
             } else if (mapStructure.next.size() >= 2) {
                 int length = mapStructure.next.size();
@@ -1242,7 +1422,7 @@ public class OuroborosNode {
                 for (int i = 0; i < length; i++) {
                     MapStructure next = mapStructure.next.get(i);
 
-                    rec[i] = calcOuroborosDataLayerSize2A(calcOuroborosDataSize(messageDataSize, next, noiseStore));
+                    rec[i] = calcOuroborosDataLayerSize2A(calcOuroborosDataSize(messageDataSize, next, skip, noiseStore));
                 }
 
                 res = calcOuroborosDataLayerSize1B(rec, noiseStore != null ? Util.popListItem(noiseStore) : 0);
@@ -1260,9 +1440,22 @@ public class OuroborosNode {
 
     byte[] createOuroborosData(byte[] messageId, byte[] messageSize, byte[] messageData, byte messageType, MapStructure mapStructure,
             List<Integer> noiseStore) {
+        return createOuroborosData(messageId, messageSize, messageData, messageType, mapStructure, true, noiseStore);
+    }
+
+    byte[] createOuroborosData(byte[] messageId, byte[] messageSize, byte[] messageData, byte messageType, MapStructure mapStructure, boolean skip,
+            List<Integer> noiseStore) {
         byte[] res;
 
         int flagType = getFlagType(mapStructure.flag);
+
+        if (skip) {
+            if (flagType == 1) {
+                skip = false;
+            } else {
+                return createOuroborosData(messageId, messageSize, messageData, messageType, mapStructure.next.get(0), skip, noiseStore);
+            }
+        }
 
         if (flagType == 0 || flagType == 2) {
             res = createOuroborosDataLayer2B(messageData);
@@ -1272,7 +1465,7 @@ public class OuroborosNode {
             if (mapStructure.next.size() == 1) {
                 MapStructure next = mapStructure.next.get(0);
 
-                res = createOuroborosDataLayer2A(createOuroborosData(messageId, messageSize, messageData, messageType, next, noiseStore), next.user);
+                res = createOuroborosDataLayer2A(createOuroborosData(messageId, messageSize, messageData, messageType, next, skip, noiseStore), next.user);
                 res = createOuroborosDataLayer1A(messageId, messageSize, convertFlagNameToByte(mapStructure.flag), MESSAGE_TYPE_NULL, res,
                         noiseStore != null ? Util.popListItem(noiseStore) : 0);
             } else {
@@ -1282,7 +1475,8 @@ public class OuroborosNode {
                 for (int i = 0; i < length; i++) {
                     MapStructure next = mapStructure.next.get(i);
 
-                    rec[i] = createOuroborosDataLayer2A(createOuroborosData(messageId, messageSize, messageData, messageType, next, noiseStore), next.user);
+                    rec[i] = createOuroborosDataLayer2A(createOuroborosData(messageId, messageSize, messageData, messageType, next, skip, noiseStore),
+                            next.user);
                 }
 
                 res = createOuroborosDataLayer1B(messageId, messageSize, convertFlagNameToByte(mapStructure.flag), MESSAGE_TYPE_NULL, rec,
@@ -1905,6 +2099,7 @@ public class OuroborosNode {
         case FLAG_BYTE_FINISH:
             return 1;
         case FLAG_BYTE_RECEIVE:
+        case FLAG_BYTE_BEACON:
             return 2;
         case FLAG_BYTE_DUMMY:
         case FLAG_BYTE_WAIT:
@@ -1938,6 +2133,8 @@ public class OuroborosNode {
             return FLAG_BYTE_WAIT;
         case FLAG_NAME_REPEAT:
             return FLAG_BYTE_REPEAT;
+        case FLAG_NAME_BEACON:
+            return FLAG_BYTE_BEACON;
         default:
             return FLAG_BYTE_NULL;
         }
@@ -1963,6 +2160,8 @@ public class OuroborosNode {
             return FLAG_NAME_WAIT;
         case FLAG_BYTE_REPEAT:
             return FLAG_NAME_REPEAT;
+        case FLAG_BYTE_BEACON:
+            return FLAG_NAME_BEACON;
         default:
             return FLAG_NAME_NULL;
         }

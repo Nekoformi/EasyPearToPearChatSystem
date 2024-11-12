@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.*;
 import java.nio.charset.*;
+import java.nio.file.*;
 import java.security.*;
 import java.security.interfaces.*;
 import java.security.spec.*;
@@ -42,7 +43,7 @@ public class Util {
     public static final String TASK_ID_REGEX = "#[0-9a-f]{32}";
     public static final String USER_ID_REGEX = "@[0-9a-f]{32}";
     public static final String FILE_ID_REGEX = "#[0-9a-f]{32}";
-    public static final String ONN_FLAG_REGEX = "(SYN|ACK|DUM|PST|REC|FIN|DEL|WAI|REP)";
+    public static final String ONN_FLAG_REGEX = "(SYN|ACK|DUM|PST|REC|FIN|DEL|WAI|REP|BEA)";
 
     public static final int TYPE_STRING = 1;
     public static final int TYPE_INTEGER = 2;
@@ -117,6 +118,16 @@ public class Util {
         return min + random.nextInt(max - min);
     }
 
+    public static boolean generateRandomBoolean(double probability) {
+        SecureRandom random = new SecureRandom();
+
+        return generateRandomBoolean(random, probability);
+    }
+
+    public static boolean generateRandomBoolean(SecureRandom random, double probability) {
+        return random.nextDouble() < probability;
+    }
+
     public static <T> T popListItem(List<T> rec) {
         return rec.remove(rec.size() - 1);
     }
@@ -187,9 +198,12 @@ public class Util {
         return res.toByteArray();
     }
 
-    public static <T> List<T> pickRandomArray(List<T> list, int n) {
-        if (list.size() < n)
+    public static <T> List<T> randomPickListItem(List<T> list, int n) {
+        if (list == null)
             return null;
+
+        if (list.size() < n)
+            n = list.size();
 
         SecureRandom random = new SecureRandom();
 
@@ -209,6 +223,26 @@ public class Util {
             if (pickIndex != lastIndex)
                 buf.set(pickIndex, lastItem);
         }
+
+        return res;
+    }
+
+    public static <T> List<T> randomInsertListItem(List<T> list, T item) {
+        if (list == null)
+            list = new ArrayList<T>();
+
+        list.add(generateRandomInt(list.size() + 1), item);
+
+        return list;
+    }
+
+    public static <T> List<T> excludeListItem(List<T> originalList, List<T> excludeList) {
+        if (originalList == null || excludeList == null)
+            return null;
+
+        List<T> res = new ArrayList<T>(originalList);
+
+        excludeList.stream().forEach(item -> res.remove(item));
 
         return res;
     }
@@ -429,6 +463,10 @@ public class Util {
 
     public static int getMinimum(int a, int b) {
         return a <= b ? a : b;
+    }
+
+    public static String getFileNameFromFilePath(String filePath) {
+        return Paths.get(filePath).getFileName().toString();
     }
 
     public static byte[] convertIntToByteArray(int value) {
