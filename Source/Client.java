@@ -53,6 +53,7 @@ public class Client {
 
     public static String TIMEOUT = "10000";
     public static String DOWNLOAD_PATH = "./";
+    public static boolean FORCE_POST_CHAT_MESSAGE = false;
     public static boolean FORCE_STRING_COMMUNICATION = false;
     public static int MESSAGE_DATA_PART_SIZE = 4096;
     public static int PACKET_DATA_PART_SIZE = 1024;
@@ -281,9 +282,14 @@ public class Client {
 
             executeCommand(message);
         } else if (!text.equals("")) {
-            systemConsole.pushMainLine("▶ /message " + text);
+            if (FORCE_POST_CHAT_MESSAGE) {
+                systemConsole.pushMainLine("▶ /message " + text);
 
-            postChatMessage(text);
+                postChatMessage(text);
+            } else {
+                systemConsole.pushMainLine("▶ " + text);
+                systemConsole.pushErrorLine("Enter the correct command.");
+            }
         }
     }
 

@@ -7,6 +7,7 @@ Work in progress...
 ```
 
 - Add feature: Beacon (Ouroboros Node Network)
+- Add feature: Set force post chat message from boot options
 - Fix feature: Ouroboros Node Network
 - Fix command exception handling
 

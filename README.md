@@ -35,6 +35,7 @@ $ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -ssl -de
 | `n` `name` | `<STRING>` | "Anonymous" | Set the username. It can also be changed within the application. |
 | `t` `timeout` | `<UNSIGNED INTEGER>` | 10000 | Set the timeout (in milliseconds). |
 | `d` `download` | `<FOLDER PATH>` | ./ | Set the folder to save downloaded files. |
+| `force-post` | `<VOID>` | false | Post anything other than a command (something that does not start with "/") as a chat message. |
 | `force-string` | `<VOID>` | false | The content to be sent in binary will be forcibly transmitted as a string. This option may be useful when clients with different operating systems fail to communicate. |
 | `message-size` | `<UNSIGNED INTEGER>` | 4096 | Set the maximum packet size (in byte). This option may be useful when clients with different operating systems fail to communicate. |
 | `file-size` | `<UNSIGNED INTEGER>` | 1048576 | Set the split size (in byte) of the file to be sent. The larger the value, the more RAM required for the recipient. |

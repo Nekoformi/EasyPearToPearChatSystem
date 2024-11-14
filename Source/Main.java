@@ -94,6 +94,10 @@ public class Main {
                         Client.DOWNLOAD_PATH = item.content;
 
                     break;
+                case "force-post":
+                    Client.FORCE_POST_CHAT_MESSAGE = true;
+
+                    break;
                 case "force-string":
                     Client.FORCE_STRING_COMMUNICATION = true;
 
