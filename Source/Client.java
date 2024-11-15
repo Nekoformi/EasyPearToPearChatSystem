@@ -25,7 +25,7 @@ import javax.net.ssl.*;
 public class Client {
     // Note: Clientは実行されるプログラムに対応する。
 
-    ClassLoader classLoader = this.getClass().getClassLoader();
+    private ClassLoader classLoader = this.getClass().getClassLoader();
 
     public Console systemConsole = new Console();
     public Console chatConsole = new Console();
@@ -40,9 +40,9 @@ public class Client {
     public NodeListener nodeListener;
     public Beacon beacon;
 
-    KeyManagerFactory serverKeyManagerFactory;
-    KeyManagerFactory clientKeyManagerFactory;
-    TrustManagerFactory authTrustManagerFactory;
+    private KeyManagerFactory serverKeyManagerFactory;
+    private KeyManagerFactory clientKeyManagerFactory;
+    private TrustManagerFactory authTrustManagerFactory;
 
     public static final String DEFAULT_SERVER_CERTIFICATE_FILE_PATH = "Source/Assets/DefaultServerCertificate.p12";
     public static final String DEFAULT_SERVER_CERTIFICATE_PASS_PHRASE = "Hello server!";
@@ -51,7 +51,7 @@ public class Client {
     public static final String DEFAULT_AUTH_KEY_STORE_FILE_PATH = "Source/Assets/DefaultRootKeyStore.jks";
     public static final String DEFAULT_AUTH_KEY_STORE_PASS_PHRASE = "Hello root!";
 
-    public boolean useSSL = false;
+    private boolean useSSL = false;
 
     public static int TIMEOUT = 10000;
     public static int BEACON_SPAN = 10000;
@@ -272,7 +272,7 @@ public class Client {
         nodeStack.carbon().stream().forEach(node -> disconnectNode(node, true));
     }
 
-    Task postChatMessage(String text) {
+    private Task postChatMessage(String text) {
         String id = "@" + userStack.myProfile.id;
         String content = Util.convertStringToBase64(text);
         String secureHash = generateSecureHashWithMyProfile(content);
@@ -669,7 +669,7 @@ public class Client {
         return Util.getCurrentTimeDisplay("HH:mm:ss") + " | ";
     }
 
-    String[][] getInetAddresses() {
+    private String[][] getInetAddresses() {
         List<String[]> res = new ArrayList<String[]>(); // DISPLAY NAME, NAME, ADDRESS...
 
         try {
@@ -717,7 +717,7 @@ public class Client {
         return res.size() != 0 ? res.toArray(new String[res.size()][]) : null;
     }
 
-    String getGoodInetAddress(String badInetAddress) {
+    private String getGoodInetAddress(String badInetAddress) {
         String en = null;
         String wl = null;
 
@@ -755,7 +755,7 @@ public class Client {
         }
     }
 
-    String showInetAddresses(int indent, int port) {
+    private String showInetAddresses(int indent, int port) {
         StringBuffer res = new StringBuffer();
 
         String[][] inetAddresses = getInetAddresses();
@@ -873,8 +873,8 @@ public class Client {
     public class NodeListener extends Thread {
         protected volatile boolean done = false;
 
-        String address;
-        int port = -1;
+        protected String address;
+        protected int port = -1;
 
         public NodeListener(int port) {
             systemConsole.pushSubLine("Start listening to new node.");
@@ -1015,15 +1015,13 @@ public class Client {
         }
     }
 
-    public class Beacon extends Thread {
+    private class Beacon extends Thread {
         protected volatile boolean done = false;
 
-        int span;
-        int minSpan;
-        int maxSpan;
+        private int minSpan;
+        private int maxSpan;
 
         public Beacon(int span) {
-            this.span = span;
             this.minSpan = span / 2;
             this.maxSpan = span * 2;
 

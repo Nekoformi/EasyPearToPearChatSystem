@@ -8,9 +8,9 @@ import Source.Utils.Util;
 import java.util.*;
 
 public class TaskStack {
-    Client client;
+    private Client client;
 
-    List<Task> taskStack = new ArrayList<Task>();
+    private List<Task> taskStack = new ArrayList<Task>();
 
     public TaskStack(Client client) {
         this.client = client;

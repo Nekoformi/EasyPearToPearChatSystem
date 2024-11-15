@@ -10,10 +10,10 @@ import Source.Utils.Util;
 import java.util.*;
 
 public class FileStack {
-    Client client;
+    private Client client;
 
-    List<FileStore> fileStoreStack = new ArrayList<FileStore>();
-    List<FileCache> fileCacheStack = new ArrayList<FileCache>();
+    private List<FileStore> fileStoreStack = new ArrayList<FileStore>();
+    private List<FileCache> fileCacheStack = new ArrayList<FileCache>();
 
     public FileStack(Client client) {
         this.client = client;
@@ -205,7 +205,7 @@ public class FileStack {
         }
     }
 
-    public Task postFile(FileStore fileStore) {
+    private Task postFile(FileStore fileStore) {
         String userId = "@" + client.userStack.myProfile.id;
         String fileId = "#" + fileStore.getFileId();
         String fileName = Util.convertStringToBase64(fileStore.getFileName());
@@ -216,7 +216,7 @@ public class FileStack {
         return client.taskStack.run(new PostChatFile().set(client, null, message));
     }
 
-    public Task requestFile(FileCache fileCache, int part) {
+    private Task requestFile(FileCache fileCache, int part) {
         String userId = "@" + client.userStack.myProfile.id;
         String targetUserId = "@" + fileCache.getUserId();
         String targetFileId = "#" + fileCache.getFileId();
@@ -229,7 +229,7 @@ public class FileStack {
         return client.taskStack.run(new RequestChatFile().set(client, null, message));
     }
 
-    public Task sendFile(String userId, String fileId, int part, byte[] content) {
+    private Task sendFile(String userId, String fileId, int part, byte[] content) {
         if (Client.FORCE_STRING_COMMUNICATION) {
             return sendFileFromString(userId, fileId, part, content);
         } else {
@@ -237,7 +237,7 @@ public class FileStack {
         }
     }
 
-    Task sendFileFromString(String userId, String fileId, int part, byte[] content) {
+    private Task sendFileFromString(String userId, String fileId, int part, byte[] content) {
         String myselfUserId = "@" + client.userStack.myProfile.id;
         String targetUserId = "@" + userId;
         String targetFileId = "#" + fileId;
@@ -251,7 +251,7 @@ public class FileStack {
         return client.taskStack.run(new SendChatFile().set(client, null, message));
     }
 
-    Task sendFileFromBinary(String userId, String fileId, int part, byte[] content) {
+    private Task sendFileFromBinary(String userId, String fileId, int part, byte[] content) {
         byte[] _timeout = Util.convertIntToByteArray(Client.TIMEOUT);
         byte[] _myselfUserId = Util.convertHexStringToByteArray(client.userStack.myProfile.id);
         byte[] _targetUserId = Util.convertHexStringToByteArray(userId);

@@ -13,14 +13,14 @@ public class OuroborosNodeStack {
     public static int WAITING_TIME_MAX = 1000;
     public static double PROBABILITY_BEACON_CHAINING = 0.5;
 
-    Client client;
+    private Client client;
 
-    List<OuroborosNode> ouroborosNodeStack = new ArrayList<OuroborosNode>();
+    private List<OuroborosNode> ouroborosNodeStack = new ArrayList<OuroborosNode>();
 
-    class PostDataQueue {
-        User targetUser;
-        String data;
-        byte dataType;
+    private class PostDataQueue {
+        private User targetUser;
+        private String data;
+        private byte dataType;
 
         public PostDataQueue(User targetUser, String data, byte dataType) {
             this.targetUser = targetUser;
@@ -42,20 +42,14 @@ public class OuroborosNodeStack {
         }
     }
 
-    List<PostDataQueue> postDataQueue = new ArrayList<PostDataQueue>();
+    private List<PostDataQueue> postDataQueue = new ArrayList<PostDataQueue>();
 
-    class SendDataStore {
-        User user;
-        String userId;
-        RSAPublicKey userPublicKey;
-        byte[] encryptedCommonKey;
-        byte[] encryptedMessage;
-
-        public SendDataStore() {}
-
-        public SendDataStore(byte[][] rec) {
-            getSendData(rec, 0);
-        }
+    private class SendDataStore {
+        private User user;
+        private String userId;
+        private RSAPublicKey userPublicKey;
+        private byte[] encryptedCommonKey;
+        private byte[] encryptedMessage;
 
         public SendDataStore(byte[][] rec, int index) {
             getSendData(rec, index);
@@ -706,7 +700,7 @@ public class OuroborosNodeStack {
         return res.toArray(new Task[res.size()]);
     }
 
-    void processReceiveData(byte[][] rec) {
+    private void processReceiveData(byte[][] rec) {
         byte[] messageId = rec[0];
         byte[] messageSize = rec[1];
         // byte flag = rec[2][0];
@@ -766,7 +760,7 @@ public class OuroborosNodeStack {
         }
     }
 
-    void processBeaconData(byte[][] rec) {
+    private void processBeaconData(byte[][] rec) {
         byte[] messageId = rec[0];
         byte[] messageSize = rec[1];
         // byte flag = rec[2][0];
@@ -806,7 +800,7 @@ public class OuroborosNodeStack {
         }
     }
 
-    void displayDataSummary(byte[][] rec, int messageSizeA) {
+    private void displayDataSummary(byte[][] rec, int messageSizeA) {
         String messageId = Util.convertByteArrayToHexString(rec[0]);
         int messageSizeB = Util.convertByteArrayToInt(rec[1]);
         String flag = OuroborosNode.convertFlagByteToName(rec[2][0]);
@@ -817,7 +811,7 @@ public class OuroborosNodeStack {
         client.systemConsole.pushMainLine("Your job flag is ... " + flag);
     }
 
-    User pickRandomUser() {
+    private User pickRandomUser() {
         List<User> rec = pickRandomUser(1);
 
         if (rec != null && rec.size() == 1) {
@@ -827,11 +821,11 @@ public class OuroborosNodeStack {
         }
     }
 
-    List<User> pickRandomUser(int n) {
+    private List<User> pickRandomUser(int n) {
         return Util.randomPickListItem(client.userStack.carbon(false), n);
     }
 
-    User pickRandomUser(List<User> excludeUserList) {
+    private User pickRandomUser(List<User> excludeUserList) {
         List<User> rec = pickRandomUser(excludeUserList, 1);
 
         if (rec != null && rec.size() == 1) {
@@ -841,11 +835,11 @@ public class OuroborosNodeStack {
         }
     }
 
-    List<User> pickRandomUser(List<User> excludeUserList, int n) {
+    private List<User> pickRandomUser(List<User> excludeUserList, int n) {
         return Util.randomPickListItem(Util.excludeListItem(client.userStack.carbon(false), excludeUserList), n);
     }
 
-    SendDataStore[] generateSendDataStore(byte[][] rec) {
+    private SendDataStore[] generateSendDataStore(byte[][] rec) {
         if (rec == null || (rec.length - OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE) % OuroborosNode.ONN_LAYER_4_DUM_DATA_SIZE != 0)
             return null;
 
@@ -857,7 +851,7 @@ public class OuroborosNodeStack {
         return res;
     }
 
-    OuroborosNode addOuroborosNodeFromData(byte[][] rec) {
+    private OuroborosNode addOuroborosNodeFromData(byte[][] rec) {
         String postUserId = Util.convertByteArrayToHexString(rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 0]);
         byte[] postUserPublicKey = rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 1];
         String mapStructure = Util.convertByteArrayToString(rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 2]);
@@ -880,7 +874,7 @@ public class OuroborosNodeStack {
         return res;
     }
 
-    OuroborosNode getOuroborosNodeFromData(byte[][] rec) {
+    private OuroborosNode getOuroborosNodeFromData(byte[][] rec) {
         String postUserId = Util.convertByteArrayToHexString(rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 0]);
         byte[] postUserPublicKey = rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 1];
         String mapStructure = Util.convertByteArrayToString(rec[OuroborosNode.ONN_LAYER_3_PROPERTY_SIZE + 2]);
@@ -910,7 +904,7 @@ public class OuroborosNodeStack {
         return res;
     }
 
-    byte[] receiveFile(OuroborosNode ouroborosNode, byte[] message) throws Exception {
+    private byte[] receiveFile(OuroborosNode ouroborosNode, byte[] message) throws Exception {
         String userId = ouroborosNode.target.id;
 
         byte[] _fileId = Util.getNextDataOnSize(message, 16);
@@ -964,7 +958,7 @@ public class OuroborosNodeStack {
         return null;
     }
 
-    byte[] sendFile(OuroborosNode ouroborosNode, byte[] message) throws Exception {
+    private byte[] sendFile(OuroborosNode ouroborosNode, byte[] message) throws Exception {
         String userId = ouroborosNode.target.id;
 
         byte[] _fileId = Util.getNextDataOnSize(message, 16);
@@ -1014,11 +1008,11 @@ public class OuroborosNodeStack {
         }
     }
 
-    Task sendDataFromString(String targetUserId, byte[] data) {
+    private Task sendDataFromString(String targetUserId, byte[] data) {
         return sendDataFromString(targetUserId, data, -1);
     }
 
-    Task sendDataFromString(String targetUserId, byte[] data, int delay) {
+    private Task sendDataFromString(String targetUserId, byte[] data, int delay) {
         String userId = "@" + client.userStack.myProfile.id;
         String content = Util.convertByteArrayToBase64(data);
         String secureHash = client.generateSecureHashWithMyProfile(content);
@@ -1030,11 +1024,11 @@ public class OuroborosNodeStack {
         return client.taskStack.run(new PostOuroborosNodeData().set(client, null, message), delay);
     }
 
-    Task sendDataFromBinary(String targetUserId, byte[] data) {
+    private Task sendDataFromBinary(String targetUserId, byte[] data) {
         return sendDataFromBinary(targetUserId, data, -1);
     }
 
-    Task sendDataFromBinary(String targetUserId, byte[] data, int delay) {
+    private Task sendDataFromBinary(String targetUserId, byte[] data, int delay) {
         byte[] _timeout = Util.convertIntToByteArray(Client.TIMEOUT);
         byte[] _userId = Util.convertHexStringToByteArray(client.userStack.myProfile.id);
         byte[] _targetUserId = Util.convertHexStringToByteArray(targetUserId);

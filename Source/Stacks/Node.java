@@ -30,17 +30,17 @@ public class Node {
 
     public User user;
 
-    InputStream binaryReader;
-    OutputStream binaryWriter;
+    private InputStream binaryReader;
+    private OutputStream binaryWriter;
 
-    BufferedReader stringReader;
-    PrintWriter stringWriter;
+    private BufferedReader stringReader;
+    private PrintWriter stringWriter;
 
     public boolean isError = false;
 
-    PacketStack packetStack;
+    private PacketStack packetStack;
 
-    NodeReceiver nodeReceiver;
+    private NodeReceiver nodeReceiver;
 
     public int delay = 0;
 
@@ -63,7 +63,7 @@ public class Node {
 
             client.systemConsole.pushSubLine("Start a node stream...");
 
-            nodeReceiver = new NodeReceiver(this);
+            nodeReceiver = new NodeReceiver();
 
             sendMessage("alg", "+", client.userStack.myProfile.stringify());
         } catch (IOException e) {
@@ -82,38 +82,38 @@ public class Node {
         client.nodeStack.remove(this);
     }
 
-    public InputStream createBinaryReader() throws IOException {
+    private InputStream createBinaryReader() throws IOException {
         return socket.getInputStream();
     }
 
-    public OutputStream createBinaryWriter() throws IOException {
+    private OutputStream createBinaryWriter() throws IOException {
         return socket.getOutputStream();
     }
 
-    public BufferedReader createStringReader() throws IOException {
+    private BufferedReader createStringReader() throws IOException {
         return new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 
-    public PrintWriter createStringWriter() throws IOException {
+    private PrintWriter createStringWriter() throws IOException {
         return new PrintWriter(socket.getOutputStream(), true);
     }
 
-    public void closeBinaryReader(InputStream reader) throws IOException {
+    private void closeBinaryReader(InputStream reader) throws IOException {
         if (reader != null)
             reader.close();
     }
 
-    public void closeBinaryWriter(OutputStream writer) throws IOException {
+    private void closeBinaryWriter(OutputStream writer) throws IOException {
         if (writer != null)
             writer.close();
     }
 
-    public void closeStringReader(BufferedReader reader) throws IOException {
+    private void closeStringReader(BufferedReader reader) throws IOException {
         if (reader != null)
             reader.close();
     }
 
-    public void closeStringWriter(PrintWriter writer) throws IOException {
+    private void closeStringWriter(PrintWriter writer) throws IOException {
         if (writer != null)
             writer.close();
     }
@@ -148,14 +148,10 @@ public class Node {
         sendMessage(message);
     }
 
-    class NodeReceiver extends Thread {
+    private class NodeReceiver extends Thread {
         private volatile boolean done = false;
 
-        Node node;
-
-        public NodeReceiver(Node node) {
-            this.node = node;
-
+        public NodeReceiver() {
             start();
         }
 
@@ -190,7 +186,7 @@ public class Node {
             }
         }
 
-        void readBinary() throws Exception {
+        private void readBinary() throws Exception {
             ByteArrayOutputStream packetDataOutputStream = new ByteArrayOutputStream();
 
             while (!done) {
@@ -226,7 +222,7 @@ public class Node {
             }
         }
 
-        void readString() throws Exception {
+        private void readString() throws Exception {
             while (!done) {
                 String line = stringReader.readLine();
 
@@ -257,7 +253,7 @@ public class Node {
         }
     }
 
-    void executeCommand(Message message) {
+    private void executeCommand(Message message) {
         if (message == null)
             return;
 

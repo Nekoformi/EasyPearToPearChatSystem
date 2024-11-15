@@ -61,7 +61,7 @@ public class OuroborosNode {
     public static final int ONN_LAYER_4_DUM_DATA_SIZE = 4;
     public static final int ONN_LAYER_4_REC_DATA_SIZE = 4;
 
-    public Client client;
+    private Client client;
 
     public User myself;
     public User target;
@@ -69,9 +69,9 @@ public class OuroborosNode {
     public class MapStructure {
         // WARNING: Never create infinite loops! (Seriously, I'm not ouroboros joke!)
 
-        public User user;
-        public String flag = FLAG_NAME_DUMMY;
-        public List<MapStructure> next;
+        private User user;
+        private String flag = FLAG_NAME_DUMMY;
+        private List<MapStructure> next;
 
         public MapStructure() {}
 
@@ -611,7 +611,7 @@ public class OuroborosNode {
             return display(0, 0);
         }
 
-        String display(int nest, int branchType) {
+        private String display(int nest, int branchType) {
             StringBuffer res = new StringBuffer(Util.repeat(": ", nest) + (branchType == 0 ? "\\ " : "| ") + "[" + flag + "] " + user.display());
 
             if (next != null) {
@@ -628,16 +628,16 @@ public class OuroborosNode {
     }
 
     public class Map {
-        List<User> dummy;
-        List<User> map;
+        private List<User> dummy;
+        private List<User> map;
 
-        MapStructure mapStructure;
+        private MapStructure mapStructure;
 
-        User post;
-        User send;
+        private User post;
+        private User send;
 
-        int postIndex = -1; // = 0;
-        int sendIndex = -1;
+        private int postIndex = -1; // = 0;
+        private int sendIndex = -1;
 
         public Map(User post, User send) {
             this.post = post;
@@ -738,7 +738,7 @@ public class OuroborosNode {
             }
         }
 
-        List<User> filterList(List<User> userList) {
+        private List<User> filterList(List<User> userList) {
             return userList.stream().filter(user -> (post == null || !user.equals(post)) && (send == null || !user.equals(send))).collect(Collectors.toList());
         }
 
@@ -758,15 +758,15 @@ public class OuroborosNode {
             return map.stream().filter(user -> user.equals(target)).findFirst().orElse(null);
         }
 
-        void setDummy(List<User> dummy) {
+        private void setDummy(List<User> dummy) {
             this.dummy = filterList(dummy);
         }
 
-        void setDummy(List<User> candidate, int pickDummyNum) {
+        private void setDummy(List<User> candidate, int pickDummyNum) {
             dummy = Util.randomPickListItem(filterList(candidate), pickDummyNum);
         }
 
-        void setTarget(User post, User send) {
+        private void setTarget(User post, User send) {
             if (dummy == null)
                 return;
 
@@ -787,14 +787,14 @@ public class OuroborosNode {
             // postIndex++;
         }
 
-        void setMap(List<User> map) {
+        private void setMap(List<User> map) {
             this.map = new ArrayList<User>(map);
 
             setDummy(this.map);
             setTargetIndex();
         }
 
-        void setMap(List<User> map, User post, User send) {
+        private void setMap(List<User> map, User post, User send) {
             this.map = new ArrayList<User>(map);
 
             this.post = post;
@@ -804,12 +804,12 @@ public class OuroborosNode {
             setTargetIndex();
         }
 
-        void setTargetIndex() {
+        private void setTargetIndex() {
             postIndex = map.indexOf(map.stream().filter(user -> user.equals(post)).findFirst().orElse(null));
             sendIndex = map.indexOf(map.stream().filter(user -> user.equals(send)).findFirst().orElse(null));
         }
 
-        void setTargetIndex(User post, User send) {
+        private void setTargetIndex(User post, User send) {
             this.post = post;
             this.send = send;
 
@@ -874,7 +874,7 @@ public class OuroborosNode {
             return 0;
         }
 
-        void swapMap() {
+        private void swapMap() {
             List<User> rec = new ArrayList<User>();
 
             if (postIndex < sendIndex) {
@@ -898,7 +898,7 @@ public class OuroborosNode {
             setDummy(map);
         }
 
-        void swapTarget() {
+        private void swapTarget() {
             User postBuf = post;
             User sendBuf = send;
 
@@ -1054,9 +1054,9 @@ public class OuroborosNode {
         }
     }
 
-    Map map;
+    public Map map;
 
-    List<String> messageStore = new ArrayList<String>();
+    private List<String> messageStore = new ArrayList<String>();
 
     public OuroborosNode(Client client, User target) {
         this.client = client;
@@ -1305,11 +1305,11 @@ public class OuroborosNode {
         }
     }
 
-    List<Integer> generateSpaciousNoiseStore(byte[] messageData, MapStructure mapStructure) {
+    public List<Integer> generateSpaciousNoiseStore(byte[] messageData, MapStructure mapStructure) {
         return generateSpaciousNoiseStore(messageData.length, mapStructure);
     }
 
-    List<Integer> generateSpaciousNoiseStore(int messageDataSize, MapStructure mapStructure) {
+    public List<Integer> generateSpaciousNoiseStore(int messageDataSize, MapStructure mapStructure) {
         MapStructure targetFinalMaximumMapStructure = getTargetFinalMaximumMapStructure(mapStructure);
 
         List<Integer> testNoiseStore = generateNoiseStore(targetFinalMaximumMapStructure, false);
@@ -1320,7 +1320,7 @@ public class OuroborosNode {
         return generateNoiseStore(testMessageSizeA - testMessageSizeB, mapStructure, true);
     }
 
-    MapStructure getTargetFinalMaximumMapStructure(MapStructure mapStructure) {
+    private MapStructure getTargetFinalMaximumMapStructure(MapStructure mapStructure) {
         MapStructure res = MapStructure.swap(mapStructure.copy(), target);
 
         res.swapFlag(myself, target);
@@ -1330,19 +1330,19 @@ public class OuroborosNode {
         return res;
     }
 
-    List<Integer> generateNoiseStore(MapStructure mapStructure, boolean stopTarget) {
+    private List<Integer> generateNoiseStore(MapStructure mapStructure, boolean stopTarget) {
         int sumNoiseSize = DEFAULT_PROPERTY_SIZE * 2 * mapStructure.count() * 2;
 
         return generateNoiseStore(sumNoiseSize, mapStructure, stopTarget);
     }
 
-    List<Integer> generateNoiseStore(int newMessageSize, int prevMessageSize, MapStructure mapStructure, boolean stopTarget) {
+    private List<Integer> generateNoiseStore(int newMessageSize, int prevMessageSize, MapStructure mapStructure, boolean stopTarget) {
         int rawMessageSize = calcOuroborosDataSize(newMessageSize, mapStructure, null);
 
         return generateNoiseStore(prevMessageSize - rawMessageSize, mapStructure, stopTarget);
     }
 
-    List<Integer> generateNoiseStore(int sumNoiseSize, MapStructure mapStructure, boolean stopTarget) {
+    private List<Integer> generateNoiseStore(int sumNoiseSize, MapStructure mapStructure, boolean stopTarget) {
         if (stopTarget) {
             int myselfIndex = mapStructure.getTargetIndex(myself, false);
             int targetIndex = mapStructure.getTargetIndex(target, false);
@@ -1354,7 +1354,7 @@ public class OuroborosNode {
         }
     }
 
-    List<Integer> generateNoiseStore(int sumNoiseSize, int storeCount) {
+    private List<Integer> generateNoiseStore(int sumNoiseSize, int storeCount) {
         SecureRandom random = new SecureRandom();
 
         List<Integer> res = new ArrayList<Integer>();
@@ -1385,15 +1385,15 @@ public class OuroborosNode {
         return res;
     }
 
-    int calcOuroborosDataSize(byte[] messageData, MapStructure mapStructure, List<Integer> noiseStore) {
+    private int calcOuroborosDataSize(byte[] messageData, MapStructure mapStructure, List<Integer> noiseStore) {
         return calcOuroborosDataSize(messageData.length, mapStructure, noiseStore);
     }
 
-    int calcOuroborosDataSize(int messageDataSize, MapStructure mapStructure, List<Integer> noiseStore) {
+    private int calcOuroborosDataSize(int messageDataSize, MapStructure mapStructure, List<Integer> noiseStore) {
         return calcOuroborosDataSize(messageDataSize, mapStructure, true, noiseStore);
     }
 
-    int calcOuroborosDataSize(int messageDataSize, MapStructure mapStructure, boolean skip, List<Integer> noiseStore) {
+    private int calcOuroborosDataSize(int messageDataSize, MapStructure mapStructure, boolean skip, List<Integer> noiseStore) {
         int res;
 
         int flagType = getFlagType(mapStructure.flag);
@@ -1438,12 +1438,12 @@ public class OuroborosNode {
         return res;
     }
 
-    byte[] createOuroborosData(byte[] messageId, byte[] messageSize, byte[] messageData, byte messageType, MapStructure mapStructure,
+    private byte[] createOuroborosData(byte[] messageId, byte[] messageSize, byte[] messageData, byte messageType, MapStructure mapStructure,
             List<Integer> noiseStore) {
         return createOuroborosData(messageId, messageSize, messageData, messageType, mapStructure, true, noiseStore);
     }
 
-    byte[] createOuroborosData(byte[] messageId, byte[] messageSize, byte[] messageData, byte messageType, MapStructure mapStructure, boolean skip,
+    private byte[] createOuroborosData(byte[] messageId, byte[] messageSize, byte[] messageData, byte messageType, MapStructure mapStructure, boolean skip,
             List<Integer> noiseStore) {
         byte[] res;
 
@@ -1492,7 +1492,7 @@ public class OuroborosNode {
         return res;
     }
 
-    byte[] createOuroborosDataLayer2A(byte[] message, User next) {
+    private byte[] createOuroborosDataLayer2A(byte[] message, User next) {
         SecretKey commonKey = Util.generateAesCommonKey();
 
         byte[] _userId = Util.convertHexStringToByteArray(next.id);
@@ -1527,7 +1527,7 @@ public class OuroborosNode {
         // };
     }
 
-    int calcOuroborosDataLayerSize2A(int messageSize) {
+    private int calcOuroborosDataLayerSize2A(int messageSize) {
         int userPublicKeySize = RSA_PUBLIC_KEY_SIZE;
         int encryptedCommonKeySize = AES_COMMON_KEY_SIZE_ENCRYPTED_BY_RSA_PUBLIC_KEY;
         int encryptedMessageSize = messageSize + 16; // = 16 * (messageSize / 16 + 1);
@@ -1535,7 +1535,7 @@ public class OuroborosNode {
         return 16 + 4 + userPublicKeySize + 4 + encryptedCommonKeySize + 4 + encryptedMessageSize;
     }
 
-    byte[] createOuroborosDataLayer2B(byte[] message) {
+    private byte[] createOuroborosDataLayer2B(byte[] message) {
         byte[] _postUserId = Util.convertHexStringToByteArray(myself.id);
         byte[] _postUserPublicKey = myself.publicKey.getEncoded();
         byte[] _postUserPublicKeySize = Util.convertIntToByteArray(RSA_PUBLIC_KEY_SIZE);
@@ -1565,14 +1565,14 @@ public class OuroborosNode {
         // };
     }
 
-    int calcOuroborosDataLayerSize2B(int messageSize) {
+    private int calcOuroborosDataLayerSize2B(int messageSize) {
         int userPublicKeySize = RSA_PUBLIC_KEY_SIZE;
         int mapSize = map.encodeMapStructure().length();
 
         return 16 + 4 + userPublicKeySize + 4 + mapSize + 4 + messageSize;
     }
 
-    byte[] createOuroborosDataLayer1A(byte[] messageId, byte[] messageSize, byte flag, byte type, byte[] data, int noiseSize) {
+    private byte[] createOuroborosDataLayer1A(byte[] messageId, byte[] messageSize, byte flag, byte type, byte[] data, int noiseSize) {
         byte[] _data = data;
         byte[] _dataSize = Util.convertIntToByteArray(_data.length);
         byte[] _noise = Util.generateNoiseByte(noiseSize);
@@ -1601,11 +1601,11 @@ public class OuroborosNode {
         // };
     }
 
-    int calcOuroborosDataLayerSize1A(int dataSize, int noiseSize) {
+    private int calcOuroborosDataLayerSize1A(int dataSize, int noiseSize) {
         return 16 + 4 + 1 + 1 + 4 + noiseSize + 4 + dataSize;
     }
 
-    byte[] createOuroborosDataLayer1B(byte[] messageId, byte[] messageSize, byte flag, byte type, byte[][] data, int noiseSize) {
+    private byte[] createOuroborosDataLayer1B(byte[] messageId, byte[] messageSize, byte flag, byte type, byte[][] data, int noiseSize) {
         byte[] _dataArray = new byte[0];
 
         for (byte[] item : data)
@@ -1639,7 +1639,7 @@ public class OuroborosNode {
         // };
     }
 
-    int calcOuroborosDataLayerSize1B(int[] dataSize, int noiseSize) {
+    private int calcOuroborosDataLayerSize1B(int[] dataSize, int noiseSize) {
         int res = 16 + 4 + 1 + 1 + 4 + noiseSize;
 
         for (int i = 0; i < dataSize.length; i++)
@@ -1648,7 +1648,7 @@ public class OuroborosNode {
         return res;
     }
 
-    byte[] createOuroborosDataLayer1C(byte[] messageId, byte[] messageSize, byte flag, byte type, int dataSize, int noiseSize) {
+    private byte[] createOuroborosDataLayer1C(byte[] messageId, byte[] messageSize, byte flag, byte type, int dataSize, int noiseSize) {
         byte[] _noise = Util.generateNoiseByte(dataSize + noiseSize);
         byte[] _noiseSize = Util.convertIntToByteArray(dataSize + noiseSize);
 
@@ -1673,7 +1673,7 @@ public class OuroborosNode {
         // };
     }
 
-    int calcOuroborosDataLayerSize1C(int dataSize, int noiseSize) {
+    private int calcOuroborosDataLayerSize1C(int dataSize, int noiseSize) {
         return 16 + 4 + 1 + 1 + 4 + noiseSize;
     }
 

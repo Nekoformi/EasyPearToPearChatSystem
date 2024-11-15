@@ -53,7 +53,7 @@ public class GetUserList extends NetworkTask {
         }
     }
 
-    void responseOfMine(String nodeStructure) {
+    private void responseOfMine(String nodeStructure) {
         NodeStructure[] res = listNodeStructure(analyzeNodeStructure(nodeStructure, 0, ',', ';'));
 
         if (res == null) {
@@ -90,7 +90,7 @@ public class GetUserList extends NetworkTask {
         client.userStack.updateUserList();
     }
 
-    void responseOfOthers(String nodeStructure) {
+    private void responseOfOthers(String nodeStructure) {
         SecretKey commonKey = Util.generateAesCommonKey();
 
         String encryptedUserData = Util.encryptStringToBase64WithAesCommonKey(myProfile.stringify(), commonKey);

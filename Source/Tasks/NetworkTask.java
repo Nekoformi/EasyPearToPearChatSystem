@@ -11,33 +11,33 @@ import java.util.*;
 import java.util.stream.*;
 
 public class NetworkTask extends Task {
-    List<Node> nodeStack;
-    List<NodeStore> nodeStore;
+    protected List<Node> nodeStack;
+    protected List<NodeStore> nodeStore;
 
-    User myProfile;
+    protected User myProfile;
 
-    int timeout = 10000;
-    int timeoutDecrement = 10;
+    protected int timeout = 10000;
+    protected int timeoutDecrement = 10;
 
-    String requestCommand = "req";
-    String returnCommand = "ret";
+    protected String requestCommand = "req";
+    protected String returnCommand = "ret";
 
-    boolean skipSend = false;
+    protected boolean skipSend = false;
 
-    class NodeStore {
-        public Node node;
-        public String[] data = null;
+    protected class NodeStore {
+        Node node;
+        String[] data = null;
 
         public NodeStore(Node node) {
             this.node = node;
         }
     }
 
-    class NodeStructure {
-        public String address = null;
-        public int port = -1;
-        public String[] data = null;
-        public NodeStructure[] children = null;
+    protected class NodeStructure {
+        String address = null;
+        int port = -1;
+        String[] data = null;
+        NodeStructure[] children = null;
     }
 
     @Override
@@ -204,22 +204,22 @@ public class NetworkTask extends Task {
         }
     }
 
-    boolean isOriginalTask() {
+    protected boolean isOriginalTask() {
         return node == null;
     }
 
-    void setSendUserIfNodeExist(String userId) {
+    protected void setSendUserIfNodeExist(String userId) {
         User user = client.userStack.test(userId);
 
         if (user != null)
             setSendUserIfNodeExist(user);
     }
 
-    void setSendUserIfNodeExist(User user) {
+    protected void setSendUserIfNodeExist(User user) {
         setSendUserIfNodeExist(Util.createExpandableList(user));
     }
 
-    void setSendUserIfNodeExist(List<User> userList) {
+    protected void setSendUserIfNodeExist(List<User> userList) {
         List<Node> newNodeStack = new ArrayList<Node>();
 
         userList.stream().forEach(user -> {
@@ -231,11 +231,11 @@ public class NetworkTask extends Task {
             nodeStack = newNodeStack;
     }
 
-    void pushErrorLine(String text) {
+    protected void pushErrorLine(String text) {
         client.systemConsole.pushErrorLine("Task \"" + requestCommand + "\" ~ \"" + returnCommand + "\" (#" + work.id + "): " + text);
     }
 
-    void setProperties(int timeout, int timeoutDecrement, String requestCommand, String returnCommand) {
+    protected void setProperties(int timeout, int timeoutDecrement, String requestCommand, String returnCommand) {
         this.timeout = timeout; // ex. Integer.parseInt(work.data[0])
         this.timeoutDecrement = timeoutDecrement;
 
@@ -243,7 +243,7 @@ public class NetworkTask extends Task {
         this.returnCommand = returnCommand;
     }
 
-    void updateNodeStore(Node node, String... data) {
+    protected void updateNodeStore(Node node, String... data) {
         NodeStore targetNodeStore = nodeStore.stream().filter(nodeStore -> nodeStore.node == node).findFirst().orElse(null);
 
         if (targetNodeStore != null) {
@@ -253,7 +253,7 @@ public class NetworkTask extends Task {
         }
     }
 
-    int countNodeStore(String... data) {
+    protected int countNodeStore(String... data) {
         if (data == null) {
             return Math.toIntExact(nodeStore.stream().filter(nodeStore -> nodeStore.data != null).count());
         } else {
@@ -274,7 +274,7 @@ public class NetworkTask extends Task {
         }
     }
 
-    String joinNodeStore(char nodeSplit, char dataSplit) {
+    protected String joinNodeStore(char nodeSplit, char dataSplit) {
         StringBuffer res = new StringBuffer();
         String rec;
 
@@ -290,7 +290,7 @@ public class NetworkTask extends Task {
         return res.toString(); // "ADDRESS(DATA; DATA; DATA ...), ADDRESS(ADDRESS(...); DATA ...), ADDRESS(ADDRESS(...), ADDRESS(...), ADDRESS(...) ...) ..."
     }
 
-    NodeStructure[] analyzeNodeStructure(String nodeStructure, int recursiveDataIndex, char nodeSplit, char dataSplit) {
+    protected NodeStructure[] analyzeNodeStructure(String nodeStructure, int recursiveDataIndex, char nodeSplit, char dataSplit) {
         List<NodeStructure> res = new ArrayList<NodeStructure>();
 
         int head = 0;
@@ -365,7 +365,7 @@ public class NetworkTask extends Task {
         return res.size() != 0 ? res.toArray(new NodeStructure[res.size()]) : null;
     }
 
-    NodeStructure setNodeStructure(String item, String content, int recursiveDataIndex, char nodeSplit, char dataSplit) {
+    protected NodeStructure setNodeStructure(String item, String content, int recursiveDataIndex, char nodeSplit, char dataSplit) {
         NodeStructure res = new NodeStructure();
 
         if (!item.matches(Util.IP_ADDRESS_PORT_REGEX))
@@ -406,7 +406,7 @@ public class NetworkTask extends Task {
         return res;
     }
 
-    NodeStructure[] listNodeStructure(NodeStructure[] nodeStructure) {
+    protected NodeStructure[] listNodeStructure(NodeStructure[] nodeStructure) {
         List<NodeStructure> res = new ArrayList<NodeStructure>();
 
         if (nodeStructure == null)

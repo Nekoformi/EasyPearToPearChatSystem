@@ -56,7 +56,7 @@ public class GetClientAddress extends NetworkTask {
         }
     }
 
-    void responseOfMine(String targetUserId) {
+    private void responseOfMine(String targetUserId) {
         NodeStore res = nodeStore.stream().filter(nodeStore -> !nodeStore.data[0].matches("EMP|DUP|OUT")).findFirst().orElse(null);
 
         if (res == null || res.data[0].equals("ERR")) {
@@ -90,7 +90,7 @@ public class GetClientAddress extends NetworkTask {
         client.joinNetwork(buf[0], Integer.parseInt(buf[1]));
     }
 
-    void responseOfOthers(String targetUserId) {
+    private void responseOfOthers(String targetUserId) {
         if (!myProfile.equals(targetUserId)) {
             NodeStore res = nodeStore.stream().filter(nodeStore -> !nodeStore.data[0].matches("EMP|DUP|OUT")).findFirst().orElse(null);
 

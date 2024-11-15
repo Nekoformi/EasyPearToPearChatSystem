@@ -8,7 +8,7 @@ import Source.Utils.Util;
 public class Packet {
     // Note: Packetは本来なら必要ないのに…自動で処理してくれると思っていた自分がマヌケだった。
 
-    public Client client;
+    private Client client;
 
     public String id;
     public int index;
@@ -57,7 +57,7 @@ public class Packet {
         return equals(packet.id);
     }
 
-    void pushErrorLine(String text) {
+    public void pushErrorLine(String text) {
         client.systemConsole.pushErrorLine("Packet (#" + id + ":" + String.valueOf(index) + ") ... " + text);
     }
 }

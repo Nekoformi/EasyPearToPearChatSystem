@@ -7,21 +7,21 @@ import java.io.*;
 import java.nio.file.*;
 
 public class FileCache {
-    public Client client;
+    private Client client;
 
-    User user;
-    String fileId;
-    String fileName;
-    int sumPart;
+    private User user;
+    private String fileId;
+    private String fileName;
+    private int sumPart;
 
-    int status = 0;
-    int part = -1;
+    private int status = 0;
+    private int part = -1;
 
-    File file;
-    File bufferedFile;
+    private File file;
+    private File bufferedFile;
 
-    FileOutputStream fileOutputStream;
-    BufferedOutputStream bufferedOutputStream;
+    private FileOutputStream fileOutputStream;
+    private BufferedOutputStream bufferedOutputStream;
 
     public FileCache(Client client) {
         this.client = client;
@@ -78,7 +78,7 @@ public class FileCache {
         return true;
     }
 
-    boolean setFolder() {
+    private boolean setFolder() {
         Path folderPath = Paths.get(Client.DOWNLOAD_PATH);
 
         if (!Files.exists(folderPath)) {
@@ -94,7 +94,7 @@ public class FileCache {
         return true;
     }
 
-    boolean setFilePath() {
+    private boolean setFilePath() {
         Path filePath = generateFilePath();
         Path bufferedFilePath = generateFilePath("tmp");
 
@@ -113,7 +113,7 @@ public class FileCache {
         return true;
     }
 
-    boolean setOutputStream() {
+    private boolean setOutputStream() {
         try {
             fileOutputStream = new FileOutputStream(bufferedFile);
             bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
@@ -130,19 +130,19 @@ public class FileCache {
         }
     }
 
-    Path generateFilePath() {
+    private Path generateFilePath() {
         return generateFilePath(0, null);
     }
 
-    Path generateFilePath(int fileNo) {
+    private Path generateFilePath(int fileNo) {
         return generateFilePath(fileNo, null);
     }
 
-    Path generateFilePath(String option) {
+    private Path generateFilePath(String option) {
         return generateFilePath(0, option);
     }
 
-    Path generateFilePath(int fileNo, String option) {
+    private Path generateFilePath(int fileNo, String option) {
         String fileBaseName;
         String fileExtension;
 

@@ -7,14 +7,14 @@ import Source.Client;
 import Source.Utils.Util;
 
 public class PacketStack {
-    Client client;
+    private Client client;
 
     class PacketCollection {
-        String id;
-        int sumPart = -1;
-        byte[] hash;
+        private String id;
+        private int sumPart = -1;
+        private byte[] hash;
 
-        List<Packet> packetStore = new ArrayList<Packet>();
+        private List<Packet> packetStore = new ArrayList<Packet>();
 
         public PacketCollection(Packet packet) {
             if (packet == null) {
@@ -118,12 +118,12 @@ public class PacketStack {
             return packet.index;
         }
 
-        void pushErrorLine(String text) {
+        private void pushErrorLine(String text) {
             client.systemConsole.pushErrorLine("Packet (#" + id + ") ... " + text);
         }
     }
 
-    List<PacketCollection> packetStack = new ArrayList<PacketCollection>();
+    private List<PacketCollection> packetStack = new ArrayList<PacketCollection>();
 
     public PacketStack(Client client) {
         this.client = client;

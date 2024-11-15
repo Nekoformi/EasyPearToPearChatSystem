@@ -9,7 +9,7 @@ import java.security.interfaces.*;
 public class User {
     // Note: Userはネットワークに参加しているクライアントに対応する。
 
-    public Client client;
+    private Client client;
 
     public Node node;
 
@@ -147,7 +147,7 @@ public class User {
         this.node = node;
     }
 
-    void pushErrorLine(String text) {
+    private void pushErrorLine(String text) {
         client.systemConsole.pushErrorLine("Invalid user data received: " + text);
     }
 }

@@ -11,22 +11,22 @@ import javax.swing.text.*;
 import javax.swing.text.html.*;
 
 public class Interface extends JFrame {
-    ClassLoader classLoader = this.getClass().getClassLoader();
+    private ClassLoader classLoader = this.getClass().getClassLoader();
 
-    Client client;
+    private Client client;
 
-    int frameX = 0;
-    int frameY = 0;
-    int frameW = 640;
-    int frameH = 480;
-    boolean setCenterPosition = false;
-    boolean setMaximizeWindow = false;
+    private int frameX = 0;
+    private int frameY = 0;
+    private int frameW = 640;
+    private int frameH = 480;
+    private boolean setCenterPosition = false;
+    private boolean setMaximizeWindow = false;
 
-    Display logDisplay;
-    Display chatDisplay;
-    Command chatCommand;
-    List memberList;
-    Action memberAction;
+    private Display logDisplay;
+    private Display chatDisplay;
+    private Command chatCommand;
+    private List memberList;
+    private Action memberAction;
 
     public Interface(Client client) {
         this.client = client;
@@ -47,7 +47,7 @@ public class Interface extends JFrame {
         setFrame();
     }
 
-    void setFrame() {
+    private void setFrame() {
         JPanel log = log();
         JPanel chat = chat();
         JPanel member = member();
@@ -89,7 +89,7 @@ public class Interface extends JFrame {
         setVisible(true);
     }
 
-    void setGridBagConstraints(GridBagConstraints c, int gX, int gY, int gW, int gH, double wX, double wY, int margin) {
+    private static void setGridBagConstraints(GridBagConstraints c, int gX, int gY, int gW, int gH, double wX, double wY, int margin) {
         c.gridx = gX;
         c.gridy = gY;
         c.gridwidth = gW;
@@ -100,12 +100,12 @@ public class Interface extends JFrame {
         c.fill = GridBagConstraints.BOTH;
     }
 
-    class Display {
-        public JPanel panel;
-        public JLabel label;
-        public JScrollPane scrollPane;
-        public JTextPane textPane;
-        public JTextArea textArea;
+    private class Display {
+        private JPanel panel;
+        private JLabel label;
+        private JScrollPane scrollPane;
+        private JTextPane textPane;
+        private JTextArea textArea;
 
         public Display(String title, boolean useTextPane) {
             label = new JLabel(title, JLabel.LEFT);
@@ -141,10 +141,10 @@ public class Interface extends JFrame {
         }
     }
 
-    class Command {
-        public JPanel panel;
-        public JTextField textField;
-        public JButton button;
+    private class Command {
+        private JPanel panel;
+        private JTextField textField;
+        private JButton button;
 
         public Command() {
             textField = new JTextField();
@@ -169,31 +169,23 @@ public class Interface extends JFrame {
             textField.setTransferHandler(new DropFileHandler(textField));
         }
 
-        public void clear() {
+        void clear() {
             textField.setText("");
         }
 
-        public String get() {
+        String get() {
             return textField.getText();
         }
 
-        public void set(String text) {
+        void set(String text) {
             textField.setText(text);
         }
 
-        public void add(String text) {
-            textField.setText(get() + text);
-        }
-
-        public String cut() {
-            return Util.cutText(textField);
-        }
-
-        public void insert(String text) {
+        void insert(String text) {
             Util.pasteText(textField, text);
         }
 
-        public String pop() {
+        String pop() {
             String res = get();
 
             clear();
@@ -202,11 +194,11 @@ public class Interface extends JFrame {
         }
     }
 
-    class List {
-        public JPanel panel;
-        public JLabel label;
-        public JScrollPane scrollPane;
-        public JList<String> list;
+    private class List {
+        private JPanel panel;
+        private JLabel label;
+        private JScrollPane scrollPane;
+        private JList<String> list;
 
         public List(String title) {
             label = new JLabel(title, JLabel.LEFT);
@@ -229,9 +221,9 @@ public class Interface extends JFrame {
         }
     }
 
-    class Action {
-        public JPanel panel;
-        public JButton[] button;
+    private class Action {
+        private JPanel panel;
+        private JButton[] button;
 
         public Action(String... buttonLabel) {
             panel = new JPanel();
@@ -261,7 +253,7 @@ public class Interface extends JFrame {
         }
     }
 
-    JPanel log() {
+    private JPanel log() {
         logDisplay = new Display("Log", true);
 
         client.systemConsole.setTextPaneScrollPane(logDisplay.scrollPane);
@@ -270,7 +262,7 @@ public class Interface extends JFrame {
         return logDisplay.panel;
     }
 
-    JPanel chat() {
+    private JPanel chat() {
         chatDisplay = new Display("Chat", true);
 
         client.chatConsole.setTextPaneScrollPane(chatDisplay.scrollPane);
@@ -302,7 +294,7 @@ public class Interface extends JFrame {
         return panel;
     }
 
-    JPanel member() {
+    private JPanel member() {
         memberList = new List("Member");
 
         memberList.panel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -326,8 +318,8 @@ public class Interface extends JFrame {
         return panel;
     }
 
-    class DropFileHandler extends TransferHandler {
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    private class DropFileHandler extends TransferHandler {
+        private Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
         public DropFileHandler(JTextComponent component) {
             super();
@@ -335,7 +327,7 @@ public class Interface extends JFrame {
             setKeyAction(component);
         }
 
-        void setKeyAction(JTextComponent component) {
+        private void setKeyAction(JTextComponent component) {
             AbstractAction cutText = new AbstractAction() {
                 public void actionPerformed(ActionEvent e) {
                     StringSelection stringSelection = new StringSelection(Util.cutText(component));
@@ -402,7 +394,8 @@ public class Interface extends JFrame {
         }
     }
 
-    class HyperLinkController extends MouseAdapter {
+    private class HyperLinkController extends MouseAdapter {
+        @Override
         public void mouseClicked(MouseEvent e) {
             JTextPane textPane = (JTextPane)e.getSource();
             int pos = textPane.viewToModel2D(new Point(e.getX(), e.getY()));
@@ -422,6 +415,7 @@ public class Interface extends JFrame {
             }
         }
 
+        @Override
         public void mouseMoved(MouseEvent e) {
             JTextPane textPane = (JTextPane)e.getSource();
             int pos = textPane.viewToModel2D(new Point(e.getX(), e.getY()));

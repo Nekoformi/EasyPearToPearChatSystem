@@ -7,17 +7,17 @@ import java.io.*;
 import java.util.*;
 
 public class FileStore {
-    public Client client;
+    private Client client;
 
-    String id;
-    int partSize = Client.FILE_DATA_PART_SIZE;
-    int sumPart = 0;
-    boolean isRemoved = false;
+    private String id;
+    private int partSize = Client.FILE_DATA_PART_SIZE;
+    private int sumPart = 0;
+    private boolean isRemoved = false;
 
-    List<User> allowedUserList;
+    private List<User> allowedUserList;
 
-    File file;
-    RandomAccessFile randomAccessFile;
+    private File file;
+    private RandomAccessFile randomAccessFile;
 
     public FileStore(Client client) {
         this.client = client;

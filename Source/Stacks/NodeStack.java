@@ -8,9 +8,9 @@ import java.util.*;
 import java.util.stream.*;
 
 public class NodeStack {
-    Client client;
+    private Client client;
 
-    List<Node> nodeStack = new ArrayList<Node>();
+    private List<Node> nodeStack = new ArrayList<Node>();
 
     public NodeStack(Client client) {
         this.client = client;

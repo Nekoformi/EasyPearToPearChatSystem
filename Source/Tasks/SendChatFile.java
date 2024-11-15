@@ -19,7 +19,7 @@ public class SendChatFile extends NetworkTask {
         return this;
     }
 
-    void setFromString() {
+    private void setFromString() {
         setProperties(Integer.parseInt(work.getStringData(0)), 10, "snd-cf", "rec-cf");
 
         String userId = work.getStringData(1).substring(1);
@@ -44,7 +44,7 @@ public class SendChatFile extends NetworkTask {
         client.fileStack.receive(userId, targetFileId, Integer.parseInt(partNo), Util.convertBase64ToByteArray(content));
     }
 
-    void setFromBinary() {
+    private void setFromBinary() {
         byte[] data = work.getByteData().clone();
 
         byte[] _timeout = Util.getNextDataOnSize(data, 4);
@@ -99,7 +99,7 @@ public class SendChatFile extends NetworkTask {
         }
     }
 
-    void sendFromString(Node node) {
+    private void sendFromString(Node node) {
         String userId = work.getStringData(1);
         String targetUserId = work.getStringData(2);
         String targetFileId = work.getStringData(3);
@@ -110,7 +110,7 @@ public class SendChatFile extends NetworkTask {
         node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), userId, targetUserId, targetFileId, partNo, content, secureHash);
     }
 
-    void sendFromBinary(Node node) {
+    private void sendFromBinary(Node node) {
         byte[] data = work.getByteData().clone();
 
         node.sendMessage(requestCommand, work.id,

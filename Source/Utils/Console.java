@@ -6,15 +6,15 @@ import javax.swing.text.*;
 import javax.swing.text.html.*;
 
 public class Console {
-    StringBuffer stringBuffer = new StringBuffer();
-    JScrollPane textAreaScrollPane;
-    JTextArea textArea;
-    int textAreaLastScrollFill = 0;
+    private StringBuffer stringBuffer = new StringBuffer();
+    private JScrollPane textAreaScrollPane;
+    private JTextArea textArea;
+    private int textAreaLastScrollFill = 0;
 
-    DefaultStyledDocument document = new DefaultStyledDocument();
-    JScrollPane textPaneScrollPane;
-    JTextPane textPane;
-    int textPaneLastScrollFill = 0;
+    private DefaultStyledDocument document = new DefaultStyledDocument();
+    private JScrollPane textPaneScrollPane;
+    private JTextPane textPane;
+    private int textPaneLastScrollFill = 0;
 
     public static int GAP = 5;
     public static boolean DEBUG_LOG = false;
@@ -52,7 +52,7 @@ public class Console {
         textPaneScrollPane = scrollPane;
     }
 
-    void updateTextArea() {
+    private void updateTextArea() {
         if (textArea == null)
             return;
 
@@ -62,7 +62,7 @@ public class Console {
             textAreaLastScrollFill = updateScrollPane(textAreaScrollPane, textArea, textAreaLastScrollFill);
     }
 
-    void updateTextPane() {
+    private void updateTextPane() {
         if (textPane == null)
             return;
 
@@ -72,7 +72,7 @@ public class Console {
             textPaneLastScrollFill = updateScrollPane(textPaneScrollPane, textPane, textPaneLastScrollFill);
     }
 
-    void clearTextArea() {
+    private void clearTextArea() {
         if (textArea == null)
             return;
 
@@ -82,7 +82,7 @@ public class Console {
             textAreaLastScrollFill = resetScrollPane(textAreaScrollPane, textArea);
     }
 
-    void clearTextPane() {
+    private void clearTextPane() {
         if (textPane == null)
             return;
 
@@ -92,7 +92,7 @@ public class Console {
             textPaneLastScrollFill = resetScrollPane(textPaneScrollPane, textPane);
     }
 
-    int updateScrollPane(JScrollPane scrollPane, JTextComponent textComponent, int lastScrollFill) {
+    private int updateScrollPane(JScrollPane scrollPane, JTextComponent textComponent, int lastScrollFill) {
         JScrollBar scrollBar = scrollPane.getVerticalScrollBar();
 
         int scrollValue = scrollBar.getValue();
@@ -110,7 +110,7 @@ public class Console {
         return lastScrollFill;
     }
 
-    int resetScrollPane(JScrollPane scrollPane, JTextComponent textComponent) {
+    private int resetScrollPane(JScrollPane scrollPane, JTextComponent textComponent) {
         JScrollBar scrollBar = scrollPane.getVerticalScrollBar();
 
         textComponent.setCaretPosition(0);
@@ -119,13 +119,13 @@ public class Console {
         return 0;
     }
 
-    void pushLineToTextArea(String text) {
+    private void pushLineToTextArea(String text) {
         stringBuffer.append((stringBuffer.length() == 0 ? "" : "\n") + text);
 
         updateTextArea();
     }
 
-    void pushLineToTextPane(String text, Color color) {
+    private void pushLineToTextPane(String text, Color color) {
         try {
             document.insertString(document.getLength(), (document.getLength() == 0 ? "" : "\n") + text, createColorTextAttribute(color));
         } catch (BadLocationException e) {
@@ -135,7 +135,7 @@ public class Console {
         updateTextPane();
     }
 
-    void pushLineToConsole(String text, String terminalLabel, String terminalColor) {
+    private void pushLineToConsole(String text, String terminalLabel, String terminalColor) {
         if (DEBUG_LOG_COLOR) {
             terminalLabel = terminalColor + terminalLabel + Util.TERMINAL_END;
             text = terminalColor + text + Util.TERMINAL_END;
@@ -144,7 +144,7 @@ public class Console {
         System.out.println(getCurrentTimeDisplay() + " [" + terminalLabel + "] " + text);
     }
 
-    SimpleAttributeSet createColorTextAttribute(Color color) {
+    private SimpleAttributeSet createColorTextAttribute(Color color) {
         SimpleAttributeSet attribute = new SimpleAttributeSet();
 
         attribute.addAttribute(StyleConstants.Foreground, color);
@@ -152,7 +152,7 @@ public class Console {
         return attribute;
     }
 
-    SimpleAttributeSet createHyperLinkAttribute(String url, Color color) {
+    private SimpleAttributeSet createHyperLinkAttribute(String url, Color color) {
         SimpleAttributeSet attribute = new SimpleAttributeSet();
 
         attribute.addAttribute(HTML.Attribute.HREF, url);
@@ -162,13 +162,13 @@ public class Console {
         return attribute;
     }
 
-    void clearAllLineToTextArea() {
+    private void clearAllLineToTextArea() {
         stringBuffer.setLength(0);
 
         clearTextArea();
     }
 
-    void clearAllLineToTextPane() {
+    private void clearAllLineToTextPane() {
         document = new DefaultStyledDocument();
 
         clearTextPane();

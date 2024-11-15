@@ -3,7 +3,7 @@ package Source.Utils;
 import java.util.*;
 
 public class Message {
-    public Console console;
+    private Console console;
 
     public String command;
     public String id;
@@ -468,11 +468,11 @@ public class Message {
         }
     }
 
-    void pushErrorLine(String text) {
+    private void pushErrorLine(String text) {
         console.pushErrorLine("Invalid message received: " + text);
     }
 
-    void pushErrorLine(String text, int index) {
+    private void pushErrorLine(String text, int index) {
         console.pushErrorLine("Invalid message received (Argument " + String.valueOf(index) + "): " + text);
     }
 }

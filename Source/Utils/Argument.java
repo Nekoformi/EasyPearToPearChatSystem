@@ -48,7 +48,7 @@ public class Argument {
         }
     }
 
-    List<ArgumentItem> argument = new ArrayList<ArgumentItem>();
+    private List<ArgumentItem> argument = new ArrayList<ArgumentItem>();
 
     public Argument(String line) {
         set(line);

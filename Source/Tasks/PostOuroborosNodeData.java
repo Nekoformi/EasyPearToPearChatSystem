@@ -19,7 +19,7 @@ public class PostOuroborosNodeData extends NetworkTask {
         return this;
     }
 
-    void setFromString() {
+    private void setFromString() {
         setProperties(Integer.parseInt(work.getStringData(0)), 10, "pst-on", "rec-on");
 
         String userId = work.getStringData(1).substring(1);
@@ -41,7 +41,7 @@ public class PostOuroborosNodeData extends NetworkTask {
         client.ouroborosNodeStack.processData(Util.convertBase64ToByteArray(content), false);
     }
 
-    void setFromBinary() {
+    private void setFromBinary() {
         byte[] data = work.getByteData().clone();
 
         byte[] _timeout = Util.getNextDataOnSize(data, 4);
@@ -88,7 +88,7 @@ public class PostOuroborosNodeData extends NetworkTask {
         }
     }
 
-    void sendFromString(Node node) {
+    private void sendFromString(Node node) {
         String userId = work.getStringData(1);
         String targetUserId = work.getStringData(2);
         String content = work.getStringData(3);
@@ -97,7 +97,7 @@ public class PostOuroborosNodeData extends NetworkTask {
         node.sendMessage(requestCommand, work.id, String.valueOf(timeout - timeoutDecrement), userId, targetUserId, content, secureHash);
     }
 
-    void sendFromBinary(Node node) {
+    private void sendFromBinary(Node node) {
         byte[] data = work.getByteData().clone();
 
         node.sendMessage(requestCommand, work.id,

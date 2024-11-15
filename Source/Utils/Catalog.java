@@ -5,8 +5,8 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 public class Catalog {
-    JList<String> list;
-    JButton[] button;
+    private JList<String> list;
+    private JButton[] button;
 
     public Catalog() {}
 

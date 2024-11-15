@@ -10,11 +10,11 @@ public class Task extends Thread {
     protected volatile boolean dead = false;
     protected volatile boolean done = false;
 
-    public Client client;
-    public Node node;
-    public Message work;
+    protected Client client;
+    protected Node node;
+    protected Message work;
 
-    public int waitingTime = -1;
+    protected int waitingTime = -1;
 
     public Task() {}
 

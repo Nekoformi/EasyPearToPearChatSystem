@@ -14,9 +14,9 @@ import java.util.stream.*;
 import javax.swing.event.*;
 
 public class UserStack {
-    Client client;
+    private Client client;
 
-    List<User> userStack = new ArrayList<User>();
+    private List<User> userStack = new ArrayList<User>();
 
     public User myProfile;
 
