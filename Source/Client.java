@@ -18,6 +18,7 @@ import Source.Utils.Util;
 
 import java.io.*;
 import java.net.*;
+import java.security.*;
 import java.util.*;
 import javax.net.ssl.*;
 
@@ -37,6 +38,7 @@ public class Client {
     public OuroborosNodeStack ouroborosNodeStack = new OuroborosNodeStack(this);
 
     public NodeListener nodeListener;
+    public Beacon beacon;
 
     KeyManagerFactory serverKeyManagerFactory;
     KeyManagerFactory clientKeyManagerFactory;
@@ -51,7 +53,8 @@ public class Client {
 
     public boolean useSSL = false;
 
-    public static String TIMEOUT = "10000";
+    public static int TIMEOUT = 10000;
+    public static int BEACON_SPAN = 10000;
     public static String DOWNLOAD_PATH = "./";
     public static boolean FORCE_POST_CHAT_MESSAGE = false;
     public static boolean FORCE_STRING_COMMUNICATION = false;
@@ -59,7 +62,7 @@ public class Client {
     public static int PACKET_DATA_PART_SIZE = 1024;
     public static int FILE_DATA_PART_SIZE = 1048576; // 1 MB
 
-    public Client() {}
+    // public Client() {}
 
     public Client(String name) {
         userStack.myProfile.set(null, name, null);
@@ -67,6 +70,11 @@ public class Client {
 
     public Client(String name, String id) {
         userStack.myProfile.set(id, name, null);
+    }
+
+    public void startBeacon() {
+        if (BEACON_SPAN > 0)
+            beacon = new Beacon(BEACON_SPAN);
     }
 
     public void createNetwork(int listeningPort) {
@@ -223,7 +231,7 @@ public class Client {
             return;
         }
 
-        Message message = new Message(systemConsole, "req-ca", "+", Client.TIMEOUT, "@" + userId);
+        Message message = new Message(systemConsole, "req-ca", "+", String.valueOf(Client.TIMEOUT), "@" + userId);
 
         taskStack.run(new GetClientAddress().set(this, null, message));
     }
@@ -269,7 +277,7 @@ public class Client {
         String content = Util.convertStringToBase64(text);
         String secureHash = generateSecureHashWithMyProfile(content);
 
-        Message message = new Message(systemConsole, "pst-cm", "+", Client.TIMEOUT, id, content, secureHash);
+        Message message = new Message(systemConsole, "pst-cm", "+", String.valueOf(Client.TIMEOUT), id, content, secureHash);
 
         return taskStack.run(new PostChatMessage().set(this, null, message));
     }
@@ -524,12 +532,12 @@ public class Client {
 
                 switch (dataLength) {
                 case 0:
-                    ouroborosNodeStack.startBeacon();
+                    ouroborosNodeStack.activateBeacon();
 
                     break;
                 case 1:
                     if (message.check(0, Util.TYPE_USER_ID))
-                        ouroborosNodeStack.startBeacon(message.getStringData(0).substring(1));
+                        ouroborosNodeStack.activateBeacon(message.getStringData(0).substring(1));
 
                     break;
                 default:
@@ -1004,6 +1012,56 @@ public class Client {
             } catch (Exception e) {
                 systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Something is wrong."));
             }
+        }
+    }
+
+    public class Beacon extends Thread {
+        protected volatile boolean done = false;
+
+        int span;
+        int minSpan;
+        int maxSpan;
+
+        public Beacon(int span) {
+            this.span = span;
+            this.minSpan = span / 2;
+            this.maxSpan = span * 2;
+
+            systemConsole.pushSubLine("Start the beacon (activation frequency: " + String.valueOf(minSpan) + " - " + String.valueOf(maxSpan) + ").");
+
+            start();
+        }
+
+        public synchronized void run() {
+            SecureRandom random = new SecureRandom();
+
+            while (!done) {
+                try {
+                    int nextSpan = Util.generateRandomInt(random, minSpan, maxSpan);
+
+                    systemConsole.pushSubLine("The beacon will activate after " + String.valueOf(nextSpan) + " milliseconds.");
+
+                    wait(nextSpan);
+
+                    if (userStack.count(false) > 0) {
+                        ouroborosNodeStack.activateBeacon();
+                    } else {
+                        systemConsole.pushSubLine("Skip activating the beacon.");
+                    }
+                } catch (InterruptedException e) {
+                    // None
+                } catch (Exception e) {
+                    systemConsole.pushErrorLine(Util.setExceptionMessage(e, "Something is wrong."));
+
+                    done();
+                }
+            }
+        }
+
+        public synchronized void done() {
+            systemConsole.pushSubLine("Finish the beacon.");
+
+            done = true;
         }
     }
 }

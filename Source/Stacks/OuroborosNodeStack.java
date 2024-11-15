@@ -517,17 +517,17 @@ public class OuroborosNodeStack {
         return ouroborosNode;
     }
 
-    public OuroborosNode startBeacon() {
+    public OuroborosNode activateBeacon() {
         User targetUser = pickRandomUser();
 
         if (targetUser != null) {
-            return startBeacon(targetUser.id);
+            return activateBeacon(targetUser.id);
         } else {
             return null;
         }
     }
 
-    public OuroborosNode startBeacon(String targetUserId) {
+    public OuroborosNode activateBeacon(String targetUserId) {
         OuroborosNode rec = createEmptyOuroborosNode(targetUserId);
 
         if (rec == null)
@@ -1025,7 +1025,7 @@ public class OuroborosNodeStack {
 
         targetUserId = "@" + targetUserId;
 
-        Message message = new Message(client.systemConsole, "pst-on", "+", Client.TIMEOUT, userId, targetUserId, content, secureHash);
+        Message message = new Message(client.systemConsole, "pst-on", "+", String.valueOf(Client.TIMEOUT), userId, targetUserId, content, secureHash);
 
         return client.taskStack.run(new PostOuroborosNodeData().set(client, null, message), delay);
     }
@@ -1035,7 +1035,7 @@ public class OuroborosNodeStack {
     }
 
     Task sendDataFromBinary(String targetUserId, byte[] data, int delay) {
-        byte[] _timeout = Util.convertIntToByteArray(Integer.parseInt(Client.TIMEOUT));
+        byte[] _timeout = Util.convertIntToByteArray(Client.TIMEOUT);
         byte[] _userId = Util.convertHexStringToByteArray(client.userStack.myProfile.id);
         byte[] _targetUserId = Util.convertHexStringToByteArray(targetUserId);
         byte[] _content = data;

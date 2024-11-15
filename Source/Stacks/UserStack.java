@@ -174,6 +174,10 @@ public class UserStack {
         }
     }
 
+    public int count(boolean includeMyProfile) {
+        return userStack.size() + (includeMyProfile ? 1 : 0);
+    }
+
     public List<User> carbon(boolean includeMyProfile) {
         List<User> res = userStack.stream().collect(Collectors.toList());
 
@@ -231,7 +235,7 @@ public class UserStack {
     public Task getUserList() {
         client.systemConsole.pushSubLine("Request user list...");
 
-        Message message = new Message(client.systemConsole, "req-ul", "+", Client.TIMEOUT, myProfile.publicKeyString);
+        Message message = new Message(client.systemConsole, "req-ul", "+", String.valueOf(Client.TIMEOUT), myProfile.publicKeyString);
 
         return client.taskStack.run(new GetUserList().set(client, null, message));
     }
@@ -296,7 +300,7 @@ public class UserStack {
             String targetId = "@" + user.id;
             String secureHash = client.generateSecureHashWithUserProfile(user.id, content);
 
-            Message message = new Message(client.systemConsole, "pst-up", "+", Client.TIMEOUT, id, content, targetId, secureHash);
+            Message message = new Message(client.systemConsole, "pst-up", "+", String.valueOf(Client.TIMEOUT), id, content, targetId, secureHash);
 
             res.add(client.taskStack.run(new PostUserProfile().set(client, null, message)));
         });
@@ -309,7 +313,7 @@ public class UserStack {
         String content = myProfile.stringify();
         String secureHash = client.generateSecureHashWithMyProfile(content);
 
-        Message message = new Message(client.systemConsole, "upd-up", "+", Client.TIMEOUT, id, content, secureHash);
+        Message message = new Message(client.systemConsole, "upd-up", "+", String.valueOf(Client.TIMEOUT), id, content, secureHash);
 
         return client.taskStack.run(new UpdateUserProfile().set(client, null, message));
     }
@@ -319,7 +323,7 @@ public class UserStack {
         String taskId = Util.generateNoiseHexString(16);
         String secureHash = client.generateSecureHashWithMyProfile(taskId);
 
-        Message message = new Message(client.systemConsole, "rem-up", taskId, Client.TIMEOUT, userId, secureHash);
+        Message message = new Message(client.systemConsole, "rem-up", taskId, String.valueOf(Client.TIMEOUT), userId, secureHash);
 
         return client.taskStack.run(new RemoveUserProfile().set(client, null, message));
     }

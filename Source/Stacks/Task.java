@@ -40,7 +40,7 @@ public class Task extends Thread {
         return this;
     }
 
-    public void run() {
+    public synchronized void run() {
         if (waitingTime > 0) {
             try {
                 wait(waitingTime);

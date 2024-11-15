@@ -85,7 +85,13 @@ public class Main {
                 case "t":
                 case "timeout":
                     if (Argument.check(item, Util.TYPE_UNSIGNED_INTEGER))
-                        Client.TIMEOUT = item.content; // = Integer.parseUnsignedInt(item.content);
+                        Client.TIMEOUT = Integer.parseUnsignedInt(item.content);
+
+                    break;
+                case "b":
+                case "beacon":
+                    if (Argument.check(item, Util.TYPE_UNSIGNED_INTEGER))
+                        Client.BEACON_SPAN = Integer.parseUnsignedInt(item.content);
 
                     break;
                 case "d":
@@ -178,16 +184,6 @@ public class Main {
                     Console.DEBUG_LOG_COLOR = true;
 
                     break;
-                case "debug-user-name":
-                    if (Argument.check(item, Util.TYPE_STRING))
-                        name = item.content;
-
-                    break;
-                case "debug-user-id":
-                    if (Argument.check(item, Util.TYPE_USER_ID))
-                        id = item.content.substring(1);
-
-                    break;
                 default:
                     System.err.println("The argument \"" + item.name + "\" is a non-existent option.");
 
@@ -226,6 +222,8 @@ public class Main {
 
             client.initializeSSL(s_cfp, s_cpp, c_cfp, c_cpp, a_kfp, a_kpp);
         }
+
+        client.startBeacon();
 
         if (joinAddressPort == null && listeningPort != null)
             client.executeCommand("/create " + listeningPort);

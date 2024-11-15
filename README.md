@@ -45,6 +45,12 @@ $ java -jar E=CS.jar -x=0 -y=0 -n="Nekoformi" -join=0.0.0.0:20000,20001 -ssl -de
 | `debug` | `<VOID>` | false | Outputs log to the console. |
 | `debug-color` | `<VOID>` | false | Colorizes log to the console. Don't use this option if you redirect logs to a file. |
 
+#### Options of Ouroboros Node Network
+
+| Option | Type | Default | Effect |
+| --- | --- | --- | --- |
+| `b` `beacon` | `<UNSIGNED INTEGER>` | 10000 | Set the frequency (in milliseconds) at which the beacon will activate. The beacon will activate between 0.5 and 2.0 times the frequency of the set value. A value of 0 will disable the beacon. |
+
 #### Options enabled in SSL mode
 
 | Option | Type | Effect |

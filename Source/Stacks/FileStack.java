@@ -211,7 +211,7 @@ public class FileStack {
         String fileName = Util.convertStringToBase64(fileStore.getFileName());
         String secureHash = client.generateSecureHashWithMyProfile(fileName + fileId);
 
-        Message message = new Message(client.systemConsole, "pst-cf", "+", Client.TIMEOUT, userId, fileId, fileName, secureHash);
+        Message message = new Message(client.systemConsole, "pst-cf", "+", String.valueOf(Client.TIMEOUT), userId, fileId, fileName, secureHash);
 
         return client.taskStack.run(new PostChatFile().set(client, null, message));
     }
@@ -223,7 +223,8 @@ public class FileStack {
         String partNo = String.valueOf(part);
         String secureHash = client.generateSecureHashWithMyProfile(partNo + targetFileId + targetUserId);
 
-        Message message = new Message(client.systemConsole, "req-cf", "+", Client.TIMEOUT, userId, targetUserId, targetFileId, partNo, secureHash);
+        Message message = new Message(client.systemConsole, "req-cf", "+", String.valueOf(Client.TIMEOUT), userId, targetUserId, targetFileId, partNo,
+                secureHash);
 
         return client.taskStack.run(new RequestChatFile().set(client, null, message));
     }
@@ -244,14 +245,14 @@ public class FileStack {
         String contentData = Util.convertByteArrayToBase64(content);
         String secureHash = client.generateSecureHashWithMyProfile(contentData + ":" + partNo + targetFileId + targetUserId);
 
-        Message message = new Message(client.systemConsole, "snd-cf", "+", Client.TIMEOUT, myselfUserId, targetUserId, targetFileId, partNo, contentData,
-                secureHash);
+        Message message = new Message(client.systemConsole, "snd-cf", "+", String.valueOf(Client.TIMEOUT), myselfUserId, targetUserId, targetFileId, partNo,
+                contentData, secureHash);
 
         return client.taskStack.run(new SendChatFile().set(client, null, message));
     }
 
     Task sendFileFromBinary(String userId, String fileId, int part, byte[] content) {
-        byte[] _timeout = Util.convertIntToByteArray(Integer.parseInt(Client.TIMEOUT));
+        byte[] _timeout = Util.convertIntToByteArray(Client.TIMEOUT);
         byte[] _myselfUserId = Util.convertHexStringToByteArray(client.userStack.myProfile.id);
         byte[] _targetUserId = Util.convertHexStringToByteArray(userId);
         byte[] _targetFileId = Util.convertHexStringToByteArray(fileId);

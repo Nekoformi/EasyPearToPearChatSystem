@@ -35,7 +35,7 @@ public class NodeStack {
     public Task getNodeList() {
         client.systemConsole.pushSubLine("Request node list...");
 
-        Message message = new Message(client.systemConsole, "req-nl", "+", Client.TIMEOUT);
+        Message message = new Message(client.systemConsole, "req-nl", "+", String.valueOf(Client.TIMEOUT));
 
         return client.taskStack.run(new GetNodeList().set(client, null, message));
     }
@@ -45,13 +45,13 @@ public class NodeStack {
 
         if (user != null) {
             if (user.node != null) {
-                if (delay < Integer.parseInt(Client.TIMEOUT)) {
+                if (delay < Client.TIMEOUT) {
                     user.node.delay = delay;
 
                     client.systemConsole
                             .pushMainLine("Communication with user (@" + userId + ") will be delayed by " + String.valueOf(delay) + " milliseconds.");
                 } else {
-                    client.systemConsole.pushErrorLine("You can't set a delay greater than the timeout (" + Client.TIMEOUT + " milliseconds).");
+                    client.systemConsole.pushErrorLine("You can't set a delay greater than the timeout (" + String.valueOf(Client.TIMEOUT) + " milliseconds).");
                 }
             } else {
                 client.systemConsole.pushErrorLine("User (@" + userId + ") is not connected as a node.");
