@@ -1168,7 +1168,20 @@ public class OuroborosNode {
 
         List<User> candidate = Util.excludeListItem(client.userStack.carbon(false), getMap());
 
-        map.setMapFromBeacon(candidate, target, addDummyNum);
+        int maxAddDummyNum = candidate.size() - 1;
+        int minAddDummyNum = MIN_DUMMIES_NUM;
+
+        if (addDummyNum > maxAddDummyNum) {
+            client.systemConsole.pushWarningLine("The maximum number of dummies can be added is " + String.valueOf(maxAddDummyNum) + "!");
+
+            map.setMapFromBeacon(candidate, target, maxAddDummyNum);
+        } else if (addDummyNum < minAddDummyNum) {
+            client.systemConsole.pushWarningLine("The minimum number of dummies can be added is " + String.valueOf(minAddDummyNum) + "!");
+
+            map.setMapFromBeacon(candidate, target, minAddDummyNum);
+        } else {
+            map.setMapFromBeacon(candidate, target, addDummyNum);
+        }
     }
 
     public String encode() {

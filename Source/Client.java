@@ -510,8 +510,8 @@ public class Client {
                 break;
             case "enqueue-message-on":
             case "emon":
-                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
-                    ouroborosNodeStack.enqueueTextData(message.getStringData(0).substring(1), message.join(1));
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_UNSIGNED_INTEGER) && message.check(2, Util.TYPE_STRING))
+                    ouroborosNodeStack.enqueueTextData(message.getStringData(0).substring(1), Integer.parseInt(message.getStringData(1)), message.join(2));
 
                 break;
             case "file-on":
@@ -522,8 +522,8 @@ public class Client {
                 break;
             case "enqueue-file-on":
             case "efon":
-                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_STRING))
-                    ouroborosNodeStack.enqueueFileData(message.getStringData(0).substring(1), message.join(1));
+                if (message.check(0, Util.TYPE_USER_ID) && message.check(1, Util.TYPE_UNSIGNED_INTEGER) && message.check(2, Util.TYPE_STRING))
+                    ouroborosNodeStack.enqueueFileData(message.getStringData(0).substring(1), Integer.parseInt(message.getStringData(1)), message.join(2));
 
                 break;
             case "b":

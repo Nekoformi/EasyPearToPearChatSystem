@@ -19,17 +19,19 @@ public class OuroborosNodeStack {
 
     private class PostDataQueue {
         private User targetUser;
+        private int addDummyNum;
         private String data;
         private byte dataType;
 
-        public PostDataQueue(User targetUser, String data, byte dataType) {
+        public PostDataQueue(User targetUser, String data, int addDummyNum, byte dataType) {
             this.targetUser = targetUser;
+            this.addDummyNum = addDummyNum;
             this.data = data;
             this.dataType = dataType;
         }
 
         public void processData(OuroborosNode ouroborosNode, byte[] messageId, byte[] messageSize) {
-            ouroborosNode.setMapFromBeacon(targetUser, OuroborosNode.MIN_DUMMIES_NUM);
+            ouroborosNode.setMapFromBeacon(targetUser, addDummyNum);
 
             switch (dataType) {
             case OuroborosNode.MESSAGE_TYPE_STRING:
@@ -538,7 +540,7 @@ public class OuroborosNodeStack {
         return rec;
     }
 
-    public void enqueueTextData(String targetUserId, String text) {
+    public void enqueueTextData(String targetUserId, int addDummyNum, String text) {
         User target = client.userStack.test(targetUserId);
 
         if (target == null)
@@ -550,7 +552,7 @@ public class OuroborosNodeStack {
             return;
         }
 
-        postDataQueue.add(new PostDataQueue(target, text, OuroborosNode.MESSAGE_TYPE_STRING));
+        postDataQueue.add(new PostDataQueue(target, text, addDummyNum, OuroborosNode.MESSAGE_TYPE_STRING));
 
         {
             String chatMessage = "Enqueue message: " + text.replaceAll("\\\\n", "\n");
@@ -559,7 +561,7 @@ public class OuroborosNodeStack {
         }
     }
 
-    public void enqueueFileData(String targetUserId, String filePath) {
+    public void enqueueFileData(String targetUserId, int addDummyNum, String filePath) {
         User target = client.userStack.test(targetUserId);
 
         if (target == null)
@@ -571,7 +573,7 @@ public class OuroborosNodeStack {
             return;
         }
 
-        postDataQueue.add(new PostDataQueue(target, filePath, OuroborosNode.MESSAGE_TYPE_BINARY_SND));
+        postDataQueue.add(new PostDataQueue(target, filePath, addDummyNum, OuroborosNode.MESSAGE_TYPE_BINARY_SND));
 
         {
             String chatMessage = "Enqueue file: " + Util.getFileNameFromFilePath(filePath);

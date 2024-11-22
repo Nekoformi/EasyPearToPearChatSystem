@@ -101,9 +101,9 @@ Hello world!
 | `eon` `edit-on` | `<USER ID A>` `<USER ID B>` `<USER ID C>` | Replace user C for user B on user A's map. |
 | `eon` `edit-on` | `<USER ID A>` `<USER ID B>` | Delete user B from user A's map. |
 | `mon` `message-on` | `<USER ID>` `<STRING ...>` | Send chat message to target using the Ouroboros Node Network. |
-| `emon` `enqueue-message-on` | `<USER ID>` `<STRING ...>` | Send chat message to target using the Ouroboros Node Network when a beacon is received. |
+| `emon` `enqueue-message-on` | `<USER ID>` `<DUMMY NUM>` `<STRING ...>` | Send chat message to target using the Ouroboros Node Network when a beacon is received. |
 | `fon` `file-on` | `<USER ID>` `<FILE PATH ...>` | Send file to target using the Ouroboros Node Network. |
-| `efon` `enqueue-file-on` | `<USER ID>` `<FILE PATH ...>` | Send file to target using the Ouroboros Node Network when a beacon is received. |
+| `efon` `enqueue-file-on` | `<USER ID>` `<DUMMY NUM>` `<FILE PATH ...>` | Send file to target using the Ouroboros Node Network when a beacon is received. |
 | `b` `beacon` | `<VOID>` | Activate the beacon. |
 | `b` `beacon` | `<USER ID>` | Activate the beacon. |
 

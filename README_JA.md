@@ -101,9 +101,9 @@ Hello world!
 | `eon` `edit-on` | `<ユーザーID A>` `<ユーザーID B>` `<ユーザーID C>` | ユーザーAの経路についてユーザーBをユーザーCに置換します。 |
 | `eon` `edit-on` | `<ユーザーID A>` `<ユーザーID B>` | ユーザーAの経路についてユーザーBを削除します。 |
 | `mon` `message-on` | `<ユーザーID>` `<文字列 ...>` | Ouroboros Node Networkを利用して対象にメッセージを投稿します。 |
-| `emon` `enqueue-message-on` | `<ユーザーID>` `<文字列 ...>` | ビーコンを受信した際にOuroboros Node Networkを利用して対象にメッセージを投稿します。 |
+| `emon` `enqueue-message-on` | `<ユーザーID>` `<ダミーの数>` `<文字列 ...>` | ビーコンを受信した際にOuroboros Node Networkを利用して対象にメッセージを投稿します。 |
 | `fon` `file-on` | `<ユーザーID>` `<ファイルパス ...>` | Ouroboros Node Networkを利用して対象にファイルを投稿します。 |
-| `efon` `enqueue-file-on` | `<ユーザーID>` `<ファイルパス ...>` | ビーコンを受信した際にOuroboros Node Networkを利用して対象にファイルを投稿します。 |
+| `efon` `enqueue-file-on` | `<ユーザーID>` `<ダミーの数>` `<ファイルパス ...>` | ビーコンを受信した際にOuroboros Node Networkを利用して対象にファイルを投稿します。 |
 | `b` `beacon` | `<VOID>` | ビーコンを起動します。 |
 | `b` `beacon` | `<USER ID>` | ビーコンを起動します。 |
 
