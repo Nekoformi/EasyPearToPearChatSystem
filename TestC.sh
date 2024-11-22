@@ -54,7 +54,7 @@ for i in `seq 0 $((clusterSize-1))`; do
     userName="C${clusterNumber}_U${userNumber}"
 
     port=$((initialPort+i+1))
-    mainPort=$((initialPort+1))
+    mainPort=$((initialPort+(posY-1)*clusterColumn+1))
     subPort=$((initialPort+posY*clusterColumn+1))
 
     userFolder=./"Test/${userName}"
@@ -67,7 +67,7 @@ for i in `seq 0 $((clusterSize-1))`; do
     if [ $i -eq 0 ]; then
         java -jar ./Test/E=CS.jar -n="$userName" -d="$userFolder" \
         -x="$windowPosX" -y="$windowPosY" -w="$windowWidth" -h="$windowHeight" \
-        -create="$mainPort" -ssl -debug > "$logFile" &
+        -create="$port" -ssl -debug > "$logFile" &
         sleep 1
     elif [ $posX -eq 0 ]; then
         java -jar ./Test/E=CS.jar -n="$userName" -d="$userFolder" \
