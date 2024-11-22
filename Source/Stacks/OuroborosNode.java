@@ -1388,11 +1388,15 @@ public class OuroborosNode {
         }
 
         int remNoiseSize = (sumNoiseSize - setNoiseSize) / storeCount;
+        int modNoiseSize = sumNoiseSize - (setNoiseSize + remNoiseSize * storeCount);
 
         for (int i = 0; i < storeCount; i++) {
-            int buf = res.get(i);
+            int buf = res.get(i) + remNoiseSize;
 
-            res.set(i, buf + remNoiseSize);
+            if (i < modNoiseSize)
+                buf++;
+
+            res.set(i, buf);
         }
 
         return res;
