@@ -1,3 +1,3 @@
-Manifest-Version: 1.4 (DEV)
+Manifest-Version: 1.4
 Created-By: Nekoformi
 Main-Class: Source.Main

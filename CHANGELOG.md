@@ -3,7 +3,7 @@
 ## E=CS 1.4
 
 ```
-Work in progress...
+Little backscratcher update!
 ```
 
 - Add feature: Beacon (Ouroboros Node Network)
