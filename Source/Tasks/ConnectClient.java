@@ -16,8 +16,9 @@ public class ConnectClient extends Task {
     public void run() {
         if (node != null && node.user == null) {
             User newUser = new User(client, work.getStringData(0));
+            User currentUser = client.userStack.get(newUser.id);
 
-            if (client.userStack.get(newUser.id) == null) {
+            if (currentUser == null || currentUser.publicKey.equals(newUser.publicKey)) {
                 node.user = client.userStack.add(newUser, false);
 
                 node.user.setNode(node);
