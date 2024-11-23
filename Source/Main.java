@@ -82,6 +82,12 @@ public class Main {
                         name = item.content;
 
                     break;
+                case "i":
+                case "id":
+                    if (Argument.check(item, Util.TYPE_USER_ID))
+                        id = item.content.substring(1);
+
+                    break;
                 case "t":
                 case "timeout":
                     if (Argument.check(item, Util.TYPE_UNSIGNED_INTEGER))

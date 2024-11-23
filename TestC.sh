@@ -11,6 +11,9 @@ clusterColumn="$2"
 clusterRow="$3"
 displayWidth="$4"
 displayHeight="$5"
+timeout="$6"
+beacon="$7"
+initialJoinAddressAndPort="$8"
 
 if [[ -z "$clusterNumber" ]]; then
     clusterNumber=0
@@ -32,7 +35,15 @@ if [[ -z "$displayHeight" ]]; then
     displayHeight=1080
 fi
 
-clusterNumber=`printf "%04d" "$clusterNumber"`
+if [[ -z "$timeout" ]]; then
+    timeout=30000
+fi
+
+if [[ -z "$beacon" ]]; then
+    beacon=160000
+fi
+
+clusterNumberDisplay=`printf "%04d" "$clusterNumber"`
 clusterSize=$((clusterColumn*clusterRow))
 
 screenWidth=$((displayWidth-(displayMarginLeft+displayMarginRight)))
@@ -50,8 +61,10 @@ for i in `seq 0 $((clusterSize-1))`; do
     windowPosX=$((windowWidth*posX+displayMarginLeft))
     windowPosY=$((windowHeight*posY+displayMarginTop))
 
-    userNumber=`printf "%04d" "$((i+1))"`
-    userName="C${clusterNumber}_U${userNumber}"
+    userNumber="$((i+1))"
+    userNumberDisplay=`printf "%04d" "$userNumber"`
+    userName="C${clusterNumberDisplay}_U${userNumberDisplay}"
+    userId=`printf "@%04x%04x000000000000000000000000" "$((clusterNumber-1))" "$i"` # {C:4}{U:4}{0x000000000000000000000000}
 
     port=$((initialPort+i+1))
     mainPort=$((initialPort+(posY-1)*clusterColumn+1))
@@ -65,19 +78,28 @@ for i in `seq 0 $((clusterSize-1))`; do
     fi
 
     if [ $i -eq 0 ]; then
-        java -jar ./Test/E=CS.jar -n="$userName" -d="$userFolder" \
-        -x="$windowPosX" -y="$windowPosY" -w="$windowWidth" -h="$windowHeight" \
-        -create="$port" -ssl -debug > "$logFile" &
-        sleep 1
+        if [[ -z "$initialJoinAddressAndPort" ]]; then
+            java -jar ./Test/E=CS.jar -n="$userName" -i="$userId" -d="$userFolder" \
+            -x="$windowPosX" -y="$windowPosY" -w="$windowWidth" -h="$windowHeight" \
+            -t="$timeout" -b="$beacon" \
+            -create="$port" -ssl -debug > "$logFile" &
+        else
+            java -jar ./Test/E=CS.jar -n="$userName" -i="$userId" -d="$userFolder" \
+            -x="$windowPosX" -y="$windowPosY" -w="$windowWidth" -h="$windowHeight" \
+            -t="$timeout" -b="$beacon" \
+            -join="${initialJoinAddressAndPort},${port}" -ssl -debug > "$logFile" &
+        fi
     elif [ $posX -eq 0 ]; then
-        java -jar ./Test/E=CS.jar -n="$userName" -d="$userFolder" \
+        java -jar ./Test/E=CS.jar -n="$userName" -i="$userId" -d="$userFolder" \
         -x="$windowPosX" -y="$windowPosY" -w="$windowWidth" -h="$windowHeight" \
+        -t="$timeout" -b="$beacon" \
         -join="0.0.0.0:${mainPort},${port}" -ssl -debug > "$logFile" &
-        sleep 1
     else
-        java -jar ./Test/E=CS.jar -n="$userName" -d="$userFolder" \
+        java -jar ./Test/E=CS.jar -n="$userName" -i="$userId" -d="$userFolder" \
         -x="$windowPosX" -y="$windowPosY" -w="$windowWidth" -h="$windowHeight" \
+        -t="$timeout" -b="$beacon" \
         -join="0.0.0.0:${subPort},${port}" -ssl -debug > "$logFile" &
-        sleep 0.5
     fi
+
+    sleep 15
 done
