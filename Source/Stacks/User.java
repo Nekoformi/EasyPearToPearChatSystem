@@ -123,7 +123,7 @@ public class User {
         try {
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
 
-            keyGen.initialize(1024);
+            keyGen.initialize(4096);
 
             KeyPair keyPair = keyGen.generateKeyPair();
 

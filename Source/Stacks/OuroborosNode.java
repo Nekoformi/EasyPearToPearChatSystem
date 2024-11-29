@@ -41,9 +41,9 @@ public class OuroborosNode {
 
     public static final int AES_BLOCK_SIZE = 16; // 128 bit = 16 byte
     public static final int AES_COMMON_KEY_SIZE = 32; // 256 bit = 32 byte
-    public static final int RSA_PUBLIC_KEY_SIZE = 162; // 1024 bit = 128 byte
-    public static final int RSA_PRIVATE_KEY_SIZE = 128; // 1024 bit = 128 byte
-    public static final int AES_COMMON_KEY_SIZE_ENCRYPTED_BY_RSA_PUBLIC_KEY = 128;
+    public static final int RSA_PUBLIC_KEY_SIZE = 550; // 4096 bit = 512 byte
+    public static final int RSA_PRIVATE_KEY_SIZE = 512; // 4096 bit = 512 byte
+    public static final int AES_COMMON_KEY_SIZE_ENCRYPTED_BY_RSA_PUBLIC_KEY = 512;
     public static final int DEFAULT_PROPERTY_SIZE = 16 + 4 + 1 + 1 + 4 + 4;
 
     public static final byte MESSAGE_TYPE_STRING = (byte)0x00;

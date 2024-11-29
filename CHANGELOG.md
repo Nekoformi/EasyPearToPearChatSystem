@@ -9,6 +9,7 @@
 - Add feature: Set force string communication from boot options
 - Add feature: Set debug color from boot options
 - Optimize network task
+- Fix the public key length
 
 ## E=CS 1.2
 
