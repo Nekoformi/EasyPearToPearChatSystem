@@ -1,5 +1,13 @@
 # Change log
 
+## E=CS 1.5
+
+```
+Work in progress...
+```
+
+- Fix feature: Recognize network interface devices
+
 ## E=CS 1.4
 
 ```

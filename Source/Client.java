@@ -720,6 +720,7 @@ public class Client {
     private String getGoodInetAddress(String badInetAddress) {
         String en = null;
         String wl = null;
+        String lh = null;
 
         String[][] inetAddresses = getInetAddresses();
 
@@ -729,15 +730,21 @@ public class Client {
         for (String[] inetAddress : inetAddresses) {
             String name = inetAddress[1];
 
-            if (name.matches("(en|wl).*") && inetAddress.length > 2) {
+            if (name.matches("(en|ethernet|wl|wireless|localhost).*") && inetAddress.length > 2) {
                 for (int i = 2; i < inetAddress.length; i++) {
                     String address = inetAddress[i];
 
-                    if (address.matches(Util.IP_ADDRESS_REGEX)) {
+                    if (address != null && address.matches(Util.IP_ADDRESS_REGEX)) {
                         if (name.matches("en.*")) {
+                            en = address;
+                        } else if (name.matches("ethernet.*")) {
                             en = address;
                         } else if (name.matches("wl.*")) {
                             wl = address;
+                        } else if (name.matches("wireless.*")) {
+                            wl = address;
+                        } else if (name.matches("localhost.*")) {
+                            lh = address;
                         }
 
                         break;
@@ -750,6 +757,8 @@ public class Client {
             return en;
         } else if (wl != null) {
             return wl;
+        } else if (lh != null) {
+            return lh;
         } else {
             return badInetAddress;
         }
