@@ -4,6 +4,8 @@ displayMarginTop=32
 displayMarginLeft=0
 displayMarginBottom=0
 displayMarginRight=0
+displayOffsetX=0
+displayOffsetY=0
 initialPort=20000
 
 clusterNumber="$1"
@@ -58,8 +60,8 @@ for i in `seq 0 $((clusterSize-1))`; do
     posX=$((i%clusterColumn))
     posY=$((i/clusterColumn))
 
-    windowPosX=$((windowWidth*posX+displayMarginLeft))
-    windowPosY=$((windowHeight*posY+displayMarginTop))
+    windowPosX=$((windowWidth*posX+displayMarginLeft+displayOffsetX))
+    windowPosY=$((windowHeight*posY+displayMarginTop+displayOffsetY))
 
     userNumber="$((i+1))"
     userNumberDisplay=`printf "%04d" "$userNumber"`
